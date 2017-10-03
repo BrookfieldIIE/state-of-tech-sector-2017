@@ -38,10 +38,15 @@ convert_all_names <- function(vector_of_names){
   return(sapply(vector_of_names,convert_one_name))
 }
 
-
-#################################
-#Convert one NACIS into a list of classes (including their parents class). If loop as shown
-#is more efficient than lapply over the vector (benchmarked.)
+##################################
+#' Converting one NAICS code to name
+#'
+#' This function allows you to convert one NAICS code to its NAICS name, along with all the parent level names
+#' @param code NAICS code. Should be string
+#' @keywords NAICS
+#' @export name Vector of names, starting from the highest parent level to the name that corresponds directly to the code
+#' @examples
+#' convert_one_code("111111")
 convert_one_code <- function(code){
   require(stringr)
   length_code <- str_length(code)
@@ -64,8 +69,15 @@ convert_one_code <- function(code){
   }
   return(final_vector)
 }
-
-#Convert a vector of NAICS codes into a list of names
+##################################
+#' Converting many NAICS code to name
+#'
+#' This function allows you to convert many NAICS code to their NAICS name, along with all the parent level names
+#' @param code NAICS code. Should be string
+#' @keywords NAICS
+#' @export list_of_name List of vector of names; each vector starting from the highest parent level to the name that corresponds directly to the code
+#' @examples
+#' convert_many_code(c("111111","4132","1111","1112"))
 show_NAICS  <- function(vector_of_codes){
   require(stringr)
   return(lapply(vector_of_codes,convert_one_code))
