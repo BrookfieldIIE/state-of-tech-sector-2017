@@ -1,0 +1,10 @@
+library(BFTheme)
+library(data.table)
+library(ggplot2)
+library(extrafont)
+library(stringr)
+library(scales)
+library(ggthemes)
+
+uow <- fread("enrolment_unique_headcount_0.csv")
+ubc <- fread("ProgramEnrolmentsOverTime_CSV.csv")

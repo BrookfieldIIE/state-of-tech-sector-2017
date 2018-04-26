@@ -97,3 +97,33 @@ cb_api <- function(path,key) {
 }
 
 org_api <- cb_api("organizations",user_key)
+
+
+
+
+
+
+########################
+#Funding network
+setkey(cb_fundround,"company_uuid")
+cb_fundround_can <- cb_fundround[cb_org_can_uuid,nomatch=0]
+
+
+
+
+setkey(cb_jobs,person_uuid)
+cb_jobs_can <- cb_jobs[person_uuid %in% cb_org_can_people_uuid[,person_uuid]]
+
+setkey(cb_org_can_people,"person_uuid")
+setkey(cb_people,"uuid")
+cb_people_can <- cb_people[cb_org_can_people,nomatch=0]
+cb_people_can[,founder:=str_detect(title,"Founder")+str_detect(title,"founder")]
+cb_people_can[,cto:=str_detect(title,"CTO")+str_detect(title,"Chief Technology Officer")]
+
+rm(cb_org)
+rm(cb_people)
+
+0.57%
+4.5%
+
+
