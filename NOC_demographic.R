@@ -6,6 +6,7 @@ library(data.table)
 library(BFTheme)
 library(extrafont)
 library(stringr)
+library(plotly)
 
 source("NOC.R") #Source to get the NOC occupations for tech purposes
 
@@ -13,7 +14,7 @@ source("NOC.R") #Source to get the NOC occupations for tech purposes
 tech.occ <- fread("tech.sector.def.csv")
 tech.occ <- tech.occ[tech==1] #Only selects for occupations with tech occupation = 1 for demographic purposes
 
-noc.dem <- fread("NOC_Demographics/NOC_demo.csv") #Load in noc demographic file
+load("NOC_Demographics/NOC_demo.RDA") #Load in noc demographic file
 names(noc.dem) <- c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUAL.FLAG","ALT.GEO.CODE","LF.STATUS","LF.STATUS.ID",
                     "LF.STATUS.NOTE","AGE","AGE.ID","AGE.NOTE","SEX","SEX.ID","SEX.NOTE","NOC","NOC.ID","NOC.NOTE","TOT","WORKER.NA","TOT.WORKER",
                     "TOT.EMP","TOT.SLF.EMP") #Change the names of the columns
@@ -90,5 +91,11 @@ fig.noc.tech.map.territories <- plot.map.cma.bf(province.name=c("YT","NT","NU"),
                                                 plot.fig.num = "Figure x",
                                                 legend.title = "Percentage Concentration of Tech Occupations",
                                                 caption = "Source: 2016 Canadian Census, BII+E Analysis")
+  
 
 
+test.data %>%
+  plot_geo() %>%
+  add_polygons(x=~long,y=~lat) %>%
+  layout(geo=list(scope="north america",projection=list(type="conic equal area")))
+p <- leaflet(areas.cmaDF) %>% addPolygons(lng=~long,lat=~lat,group=~group)

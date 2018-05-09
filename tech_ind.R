@@ -13,7 +13,7 @@ old.tech.noc <- c("0131","0211","0212","0213","2111","2112","2113","2114","2115"
                   "2142","2146","2147","2148","2161","2171","2172","2173","2174","2175","2211","2221","5223","5241")
 #Get old tech noc in here for comparison reasons
 
-naics.noc <- fread("TECH_IND/full_file.csv") #Read the main NAICS NOC file
+load("TECH_IND/full_file.RDA")
 individual.ranking <- fread("tech.sector.def.csv")
 
 naics.noc <- melt(naics.noc,id.vars=c("Industry","Geography")) #Melt it to long form with industry and geography
@@ -39,17 +39,27 @@ naics.noc[,geography:=NULL] #Set geography to null since we only care about Onta
 naics.noc[,tech:=0] #Set tech as 0
 naics.noc[occupation %in% individual.ranking[tech==1,noc_title],tech:=1] #Set tech dummy for occupation as 1
 
+naics.noc[,old.tech:=0] #Set old tech as 0
+naics.noc[noc %in% old.tech.noc,old.tech:=1] #Set old tech as 1
+
 #These 4 lines calculate the % of tech occupations in a given industry
 naics.noc[,tot:=sum(count),by=naics] 
 naics.noc.sum <- naics.noc[tech==1,.(sum(count),unique(tot)),by=industry]
 names(naics.noc.sum) <- c("industry","tech","tot")
 naics.noc.sum[,pct:=100*tech/tot]
 
+#For old noc
+naics.noc.old <- naics.noc[old.tech==1,.(sum(count),unique(tot)),by=industry]
+names(naics.noc.old) <- c("industry","old.tech","tot")
+naics.noc.old[,old.pct:=100*old.tech/tot]
+
 #Set tech quotients
 naics.noc.sum[,tech.dum:=0]
-naics.noc.sum[pct>15,tech.dum:=1]
+naics.noc.sum[pct>mean(pct)*3,tech.dum:=1]
 
-
+#Set old noc tech quotients
+naics.noc.old[,tech.dum:=0]
+naics.noc.old[old.pct>mean(old.pct)*3,tech.dum:=1]
 
 
 

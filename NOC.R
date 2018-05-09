@@ -13,15 +13,16 @@ library(BFTheme)
 library(extrafont)
 library(psych)
 
-tech.cut.off <- 21 #Define the tech cut off here
+tech.cut.off <- 25 #Define the tech cut off here
+digital.cut.off <- 17 #Define digital cut-off
 
 
 
-crosswalk <- fread("NOC/onetnoc.csv") #Import Crosswalk file
-knowledge <- read.xlsx("NOC/Knowledge.xlsx") #Import knowledge file
-skill <- read.xlsx("NOC/Skills.xlsx") #Import skill file
-work.activity <- read.xlsx("NOC/Work Activities.xlsx") #Import work activity file
-work.style <- read.xlsx("NOC/Work Styles.xlsx") #Import work style file
+load("NOC/crosswalk.RDA") #Import Crosswalk file
+load("NOC/Knowledge.RDA")
+load("NOC/Skills.RDA")
+load("NOC/Work Activities.RDA")
+load("NOC/Work Styles.RDA")
 
 #Combine skill knowledge and work activity in one thing
 knowledge <- as.data.table(knowledge)
@@ -115,31 +116,34 @@ individual.ranking <- reshape(individual.ranking,direction="wide",v.names = c("V
 setkey(individual.ranking,noc_title)
 setkey(full.avg.crosswalk.style.innovation,noc_title)
 individual.ranking <- individual.ranking[full.avg.crosswalk.style.innovation,nomatch=0]
+individual.ranking <- individual.ranking[!is.na(noc_title)]
+
 
 #Rank for all the tech skills
-for(n in c(tech.skills)){
+for(n in tech.skills){
   individual.ranking[,str_c("rank.",n):=frankv(get(str_c("V1.",n)),order=-1)]
 }
+
 
 #Rank for innovation work style
 individual.ranking[,rank.V1.1.C.7.a:=frankv(innovation,order=-1)]
 
-#Calculate the regular harmonic mean
-for(n in seq(1,484)){
-  individual.ranking[n,harm.rank:=harmonic.mean(c(rank.2.C.4.a,rank.2.C.4.b,rank.2.C.4.c,
-                                            rank.2.C.4.d,rank.2.B.3.b,rank.2.B.3.e,
-                                            rank.2.C.3.a,rank.4.A.3.b.1,rank.2.C.3.b,rank.2.C.9.a))]
+#Calculate the harmonic mean
+for(n in seq(1,483)){
+  individual.ranking[n,harm.rank:=harmonic.mean(c(rank.2.B.3.b+1,rank.2.B.3.e+1,
+                                                  rank.2.C.3.a+1,rank.4.A.3.b.1+1,rank.2.C.3.b+1,rank.2.C.9.a+1))]
 }
 
-#Calculate the harmonic mean for tech skills only
-for(n in seq(1,484)){
-  individual.ranking[n,harm.rank.tech:=harmonic.mean(c(rank.2.B.3.b+1,rank.2.B.3.e+1,
-                                                  rank.2.C.3.a+1,rank.4.A.3.b.1+1,rank.2.C.3.b+1,rank.2.C.9.a+1))]
+for(n in seq(1,483)){
+  individual.ranking[n,harm.rank.digital:=harmonic.mean(c(rank.2.B.3.e+1,
+                                                          rank.2.C.3.a+1,rank.4.A.3.b.1+1,rank.2.C.9.a+1))]
 }
 
 #Define the technology sector
 individual.ranking[,tech:=0]
 individual.ranking[harm.rank < tech.cut.off, tech:=1]
+individual.ranking[harm.rank < tech.cut.off, digital:= "High-Tech"]
+individual.ranking[harm.rank < tech.cut.off & harm.rank.digital < digital.cut.off, digital:= "Digital"]
 
 
 #Write the CSV out
@@ -147,11 +151,8 @@ write.csv(individual.ranking,"tech.sector.def.csv",row.names=FALSE)
 
 #Clean up the environment for the next file
 rm(crosswalk,full.avg.crosswalk.skill,full.avg.crosswalk.style,full.avg.crosswalk.style.innovation,individual.ranking)
+rm(digital.cut.off,n,tech.cut.off,tech.skills)
 
 
 
-
-test.plot <- ggplot(mtcars,aes(mpg,cyl)) +
-  geom_point() +
-  theme(axis.title.x = element_text(family="RooneySans Regular"))
 
