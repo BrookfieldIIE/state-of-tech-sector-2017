@@ -6,7 +6,18 @@
 
 #Note - this file is still currently a mess right now - don't take anything from it yet
 
+library(data.table)
+library(ggplot2)
+library(BFTheme)
+library(extrafont)
+library(stringr)
 
+
+
+
+load("NOC_Demographics/noc_2016_processed.RDA")
+load("NOC_Demographics/noc_2016_educ_processed.RDA")
+load("NOC_Demographics/noc_2006_processed.RDA")
 
 
 
@@ -74,41 +85,6 @@ fig.noc.tech.map.territories <- plot.map.cma.bf(province.name=c("YT","NT","NU"),
                                                 plot.fig.num = "Figure x",
                                                 legend.title = "Percentage Concentration of Tech Occupations",
                                                 caption = "Source: 2016 Canadian Census, BII+E Analysis")
-
-
-
-#Do a simple education attainment by sex - should aggregate by age next
-noc.demo.educ.prim <- noc.demo.educ[ GEO_NAME=="Canada"& CIP82.ID==1,.(sum(TOT.EDUC),sum(TOT.NO),sum(TOT.SEC),sum(TOT.APP),sum(TOT.COL),sum(TOT.BEBA),
-                                                                       sum(TOT.BA),sum(TOT.ABBA)),by=.(tech,SEX3)] #Get the primary facts table
-
-
-names(noc.demo.educ.prim) <- c("tech","SEX","Total","No Degree","Secondary School","Apperenticeship and Trade Schools","College, CEGEP","University Degree Below Bachelors",
-                               "Bachelors","Above Bachelors")
-noc.demo.educ.prim <- melt(noc.demo.educ.prim,id.vars = c("tech","SEX"),variable.name = "Education",value.name="Count")
-
-noc.demo.educ.prim[,total:=max(Count),by=.(tech,SEX)]
-noc.demo.educ.prim[,pct:=Count/total*100]
-
-educ.graph <- plot.column.bf(noc.demo.educ.prim[SEX=="Total - Sex" & Education!="Total"],
-                             "pct","tech",stacked = TRUE,group.by = "Education",
-                             label.unit = "%",plot.title = "Educational Composition of Tech Occupations",
-                             plot.fig.num = "Figure X",caption = "Source: 2016 Canadian Census, BII+E Analysis")
-
-educ.graph.sex <- plot.column.bf(noc.demo.educ.prim[SEX != "Total - Sex" & tech=="Tech Occupation" & Education != "Total"],
-                                 "pct","SEX",stacked = TRUE, group.by = "Education",
-                                 label.unit = "%",
-                                 plot.title = "Educational Composition by Sex - Technology Occupations",
-                                 plot.fig.num = "Figure X", caption = "Source: 2016 Canadian Census, BII+E Analysis")
-
-noc.demo.educ.cip <- noc.demo.educ[GEO_NAME=="Canada",sum(TOT.EDUC),by=.(tech,CIP82,SEX3)]
-
-noc.demo.educ.cip[,total:=max(V1),by=.(tech,SEX3)]
-noc.demo.educ.cip[,pct:=V1/total*100]
-
-
-
-##########################################
-# 2006 Classification
 
 
 

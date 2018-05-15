@@ -45,15 +45,17 @@ age.10 <- c(2,6,9,10,11,12) #Define the age category - useful in subsetting by I
 noc.2016.age <- noc.dem[GEO.NAME=="Canada" & LF.STATUS.ID == 1]
 
 
-noc.2016.age[,c("TOT.SLF.EMP","TOT.EMP","TOT","WORKER.NA"):=NULL]
-noc.2016.age <- noc.2016.age[,sum(TOT.WORKER),by=.(tech,AGE,SEX,AGE.ID)]
+noc.2016.age[,c("TOT.SLF.EMP","TOT.EMP","TOT.WORKER","WORKER.NA"):=NULL] #Remove the non worker totals - only interested in people who are workers
+noc.2016.age <- noc.2016.age[,sum(TOT),by=.(tech,AGE,SEX,AGE.ID)]
 noc.2016.age <- noc.2016.age[SEX != "Total - Sex"]
 noc.2016.age <- noc.2016.age[AGE.ID %in% age.10]
 names(noc.2016.age) <- c("tech","AGE","SEX","AGE.ID","tech.total.2016")
-noc.2016.age[,pop.total.2016:=sum(tech.total.2016),by=.(AGE,SEX)]
-noc.2016.age <- noc.2016.age[tech==1]
-noc.2016.age[,pct.pop.2016:=pop.total.2016/sum(pop.total.2016)]
-noc.2016.age[,pct.tech.2016:=tech.total.2016/pop.total.2016]
+
+noc.2016.age[,pop.total.2016:=sum(tech.total.2016),by=.(AGE,SEX)] #Find total workers by demographic group regardless of tech
+
+noc.2016.age <- noc.2016.age[tech==1] #Only filter out for tech numbers now for percentage calculation
+noc.2016.age[,pct.pop.2016:=pop.total.2016/sum(pop.total.2016)] #Get percentage of population in that demogrpahic cell
+noc.2016.age[,pct.tech.2016:=tech.total.2016/pop.total.2016] #Get percentage of tech workers in that demographic cell
 noc.2016.age[,tech:=NULL]
 noc.2016.age[,AGE.ID:=NULL]
 
@@ -73,6 +75,8 @@ total.effect <- composition.effect + interaction.effect + propensity.effect
 noc.dec.merge[,share.effect:=100*((pct.pop.2016*pct.tech.2016)-(pct.pop.2006*pct.tech.2006))/total.effect]
 
 
+
+plot.scatter.bf(noc.dec.merge.2,"pct.tech.2006","pct.tech.2016",deg.45=TRUE,unit.x="%",unit.y="%",trend.line=TRUE)
 
 
 
