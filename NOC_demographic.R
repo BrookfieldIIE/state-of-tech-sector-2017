@@ -5,6 +5,8 @@
 # -      NOC_Demographics/noc_2006_processed.RDA
 # - noc.dem Main 2016 Noc demograhpics based on Age, Sex, and Labour Force by CMA as well as worker
 # -      NOC_Demographics/noc_2016_processed.RDA
+# - noc.dem Main 2016 Noc demograhpics based on Age, Sex, and Labour Force by PR - has income and immigraiton stuff as well
+# -      NOC_Demographics/noc_2016_PR_processed.RDA
 # - noc.demo.educ Main 2016 NOC demographics based on Age Sex Education CIP by
 # -      NOC_Demographics/noc_2016_educ_processed.RDA
 # - Run to prepare and clean big demographic datasets related to Occupations - Make sure all references to new column names (if any) are updated in other files
@@ -38,7 +40,7 @@ noc.classification.2006[,`Class title`:=str_to_lower(`Class title`)] #Change the
 
 
 #####################
-#Main 2016 Dataset to use
+#Main 2016 Dataset to use - CMA/CA Level
 load("NOC_Demographics/NOC_demo.RDA") #Load in noc demographic file for 2016 census
 names(noc.dem) <- c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUAL.FLAG","ALT.GEO.CODE","LF.STATUS","LF.STATUS.ID",
                     "LF.STATUS.NOTE","AGE","AGE.ID","AGE.NOTE","SEX","SEX.ID","SEX.NOTE","NOC","NOC.ID","NOC.NOTE","TOT","WORKER.NA","TOT.WORKER",
@@ -51,6 +53,8 @@ noc.dem[,NOC.NUM:=NULL] #Set NOC to NULL - Saves a bit more space
 noc.dem[,c("GNR","DATA.QUAL.FLAG","LF.STATUS.NOTE","AGE.NOTE","SEX.NOTE","NOC.ID","NOC.NOTE"):=NULL] #Delete All irrelevant columns
 
 
+
+
 #At this point, should have 2,293,895 rows. Check if that's not the case
 
 noc.dem[,tech:=0] #Set the tech flag vs non tech flag
@@ -60,6 +64,24 @@ noc.dem[NOC %in% tech.occ[,noc_title],tech:=1] #Set the tech flag
 save(noc.dem,file="NOC_Demographics/noc_2016_processed.RDA") #This Saves the processed file
 
 rm(noc.dem) #Remove the file for regular processing
+
+#####################
+# Main 2016 Dataset to use - PR Level
+load("NOC_Demographics/noc_2016_PR.RDA")
+names(noc.dem.master) <- c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUAL.FLAG","ALT.GEO.CODE","IM.STATUS","IM.STATUS.ID",
+                           "IM.STATUS.NOTE","EDUC","EDUC.ID","EDUC.NOTE","WA","WA.ID","WA.NOTE","AGE5","AGE5.ID","AGE5.NOTE",
+                           "SEX3","SEX3.ID","SEX3.NOTE","NOC691","NOC691.ID","NOC691.NOTES","TOT","MED.INC","AVG.INC")
+noc.dem.master <- noc.dem.master[TOT>0]
+noc.dem.master[,NOC.NUM:=tstrsplit(NOC691," ",keep=1)]
+noc.dem.master <- noc.dem.master[nchar(NOC.NUM)==4]
+noc.dem.master[,NOC.NUM:=NULL]
+noc.dem.master[,c("GNR","DATA.QUAL.FLAG","IM.STATUS.NOTE","EDUC.NOTE","WA.NOTE","AGE5.NOTE","SEX3.NOTE","NOC691.NOTES"):=NULL]
+noc.dem.master[,tech:=0]
+noc.dem.master[NOC691 %in% tech.occ[,noc_title],tech:=1]
+
+save(noc.dem.master, file="NOC_Demographics/noc_2016_PR_processed.RDA")
+
+rm(noc.dem.master)
 
 ################################
 #Process 2006 Census Data
