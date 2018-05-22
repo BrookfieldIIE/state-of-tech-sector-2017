@@ -1,5 +1,5 @@
 ###################
-# Tech Investment
+# ICT Capital Contribution and Share
 ###################
 
 library(data.table)

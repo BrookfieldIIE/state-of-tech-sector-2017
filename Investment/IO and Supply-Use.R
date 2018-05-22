@@ -1,5 +1,5 @@
 ###################
-# Tech Investment
+# Supply-Use
 ###################
 
 library(data.table)
@@ -80,6 +80,9 @@ origin.e <- inout %>%
 # Plots
 ##########
 
+# Make a column graph first for digital economy destinations
+
+## Network graph
 # Make node size = sector total
 # Categorize sectors
 # https://gephi.org/
