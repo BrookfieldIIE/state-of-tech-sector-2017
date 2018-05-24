@@ -8,6 +8,7 @@ library(tidyverse)
 library(skimr)
 library(lubridate)
 library(BFTheme)
+library(stringr)
 library(extrafont)
 setwd("~/GitHub/state-of-tech-sector-2017/Investment")
 
@@ -116,3 +117,14 @@ plot.line.bf(as.data.table(govt.cap.perc), "Date", "Value", group.by = "EST",
              y.axis = "Digital Share of Gross Fixed Capital Flow (%)",
              x.axis = "Year",
              caption = "StatCan CANSIM Table 380-0068: Gross fixed capital formation")
+
+# Govt Capital Formation - Share
+plot.line.bf(as.data.table(govt.cap.perc), "Date", "Value", group.by = "EST", fill = "EST",
+             plot.title = "Digital Investment by Government in Canada",
+             plot.fig.num = "Figure x.x",
+             unit.y = "%",
+             y.axis = "Digital Share of Gross Fixed Capital Flow (%)",
+             x.axis = "Year",
+             caption = "StatCan CANSIM Table 380-0068: Gross fixed capital formation") +
+  geom_area()
+

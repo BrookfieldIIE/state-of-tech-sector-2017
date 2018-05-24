@@ -76,8 +76,34 @@ origin.e <- inout %>%
   mutate(DESTINATION = str_sub(DESTINATION,1,str_length(DESTINATION)-10)) %>%
   rename(to = DESTINATION, from = ORIGIN, weight = Value)
 
+dest <- inout %>%
+  filter(ORIGIN %in% cat.ori, Ref_Date == 2014, VALUATION == "Purchaser price", ORIGIN != "Total", DESTINATION != "Total (x 1,000)", Value > 500000) %>%
+  filter(ORIGIN != "Telecommunications") %>%
+  select(-GEO, -Vector, -Coordinate , -Ref_Date, -VALUATION, -ORIGIN) %>%
+  mutate(DESTINATION = str_sub(DESTINATION,1,str_length(DESTINATION)-10)) %>%
+  group_by(DESTINATION) %>%
+  summarise_all(sum) %>%
+  top_n(20) %>%
+  #arrange(desc()) %>%
+  ungroup()
+  
+dest$DESTINATION <- str_wrap(dest$DESTINATION, 50)
+
 ##########
-# Plots
+#Plots
+##########
+
+plot.column.bf(as.data.table(dest), x="Value", cat="DESTINATION",
+               plot.title = "Top Consumers of Canadian Digital Sector Outputs",
+               plot.fig.num = "Figure x.x",
+               order.bar = TRUE)
+
+
+ggplot(dest, aes(DESTINATION, fill=bfc)) + geom_bar(aes(weight=Value)) +
+  brookfield.base.theme()
+
+##########
+# Network Plots
 ##########
 
 # Make a column graph first for digital economy destinations
