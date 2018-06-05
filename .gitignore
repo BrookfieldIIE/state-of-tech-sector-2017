@@ -40,3 +40,4 @@ rsconnect/
 *.spl
 *.zip
 *.csv
+.Rproj.user
