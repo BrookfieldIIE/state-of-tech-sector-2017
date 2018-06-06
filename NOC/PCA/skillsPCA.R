@@ -9,6 +9,9 @@ library(caret)
 library(Rtsne)
 library(BFTheme)
 library(skimr)
+library(doParallel)
+library(lindia)
+library(broom)
 setwd("~/GitHub/state-of-tech-sector-2017/NOC/PCA")
 
 #Set up data
@@ -63,8 +66,48 @@ onet.pca.r <- onet.pca %>%
   drop_na() %>%
   select(-NOC.code)
 
-onet.pca.model <- lm(VALUE ~ (PC1 + PC2 + PC3 + PC4 + PC5 + NOC)^2 , onet.pca.r)
+onet.pca.model <- lm(VALUE ~ (PC1 + PC2 + PC3 + PC4 + PC5)^2 + GEO + REF_DATE, onet.pca.r) #Residuals explode at high values, but other diagnostics look good
+onet.pca.model <- lm(VALUE ~ (PC1 + PC2 + PC3 + PC4 + PC5)^2 + I(PC1^.5) + I(PC2^.5) + I(PC3^.5) + I(PC4^.5) + I(PC5^.5) + GEO + REF_DATE, onet.pca.r) #Reins in some of the residuals for high fitted values
+onet.pca.model <- lm(VALUE ~ (PC1 + PC2 + PC3 + PC4 + PC5)^2 + I(PC1^.5) + I(PC3^.5) + I(PC4^.5) + GEO + REF_DATE, onet.pca.r) #Remove some insignificant variables, but reintroduces some heteroskedasticity
 summary(onet.pca.model)
+glance(onet.pca.model)
+tidy(onet.pca.model)
+
+#Diagnostics: https://www.r-bloggers.com/regression-analysis-essentials-for-machine-learning/
+par(mfrow = c(2,2))
+plot(onet.pca.model)
+
+gg_reshist(onet.pca.model) #looks about normal
+gg_resfitted(onet.pca.model) #looks about flat, but high residuals at high-end. May need to log the PCAs
+gg_qqplot(onet.pca.model) #same issue as above
+gg_boxcox(onet.pca.model)
+gg_scalelocation(onet.pca.model)
+gg_resleverage(onet.pca.model)
+gg_cooksd(onet.pca.model)
+gg_diagnose(onet.pca.model)
+
+#Caret https://topepo.github.io/caret/recursive-feature-elimination.html
+set.seed(10)
+cl <- makeCluster(detectCores()-4)
+registerDoParallel(cl)
+
+control <- trainControl(method="cv", number=3) #faster cv for interim models
+split.m <- createDataPartition(onet.pca.r$VALUE, p = 0.7, list=FALSE)
+train.m <- onet.pca.r[split.m,]
+test.m <- onet.pca.r[-split.m,]
+
+date()
+train.rpart <- train(VALUE ~ PC1 + PC2 + PC3 + PC4 + PC5 + GEO + REF_DATE, data=train.m, method="rf", trControl=control, tuneLength=5)
+print(train.rpart)
+plot(train.rpart)
+date()
+
+date()
+train.lm <- train(VALUE ~ (PC1 + PC2 + PC3 + PC4 + PC5)^2 + GEO + REF_DATE, data=train.m, method="lm", trControl=control)
+print(train.lm)
+plot(train.lm)
+date()
+
 
 #COPS
 cops <- read_csv("employment_growth_croissance_emploi_2017_2026.csv")
