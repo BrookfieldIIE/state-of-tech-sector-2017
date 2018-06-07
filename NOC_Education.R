@@ -1,9 +1,16 @@
 #######################
 #NOC Education stuff
-
+library(data.table)
+library(ggplot2)
+library(extrafont)
+library(SDMTools)
+library(BFTheme)
+library(stringr)
+library(ggrepel)
 
 load("NOC_Demographics/noc_2016_educ_processed.RDA")
 load("NOC_Demographics/noc_2006_processed.RDA")
+load("NOC_Demographics/noc_2016_PR_processed.RDA")
 
 
 
@@ -18,18 +25,6 @@ noc.demo.educ.prim <- melt(noc.demo.educ.prim,id.vars = c("tech","SEX"),variable
 
 noc.demo.educ.prim[,total:=max(Count),by=.(tech,SEX)] #Calculate the max
 noc.demo.educ.prim[,pct:=Count/total*100] #Calculate the percentage
-
-educ.graph <- plot.column.bf(noc.demo.educ.prim[SEX=="Total - Sex" & Education!="Total"],
-                             "pct","tech",stacked = TRUE,group.by = "Education",
-                             label.unit = "%",plot.title = "Educational Composition of Tech Occupations",
-                             plot.fig.num = "Figure X",caption = "Source: 2016 Canadian Census, BII+E Analysis") #General educational stacked bar
-
-educ.graph.sex <- plot.column.bf(noc.demo.educ.prim[SEX != "Total - Sex" & tech=="Tech Occupation" & Education != "Total"],
-                                 "pct","SEX",stacked = TRUE, group.by = "Education",
-                                 label.unit = "%",
-                                 plot.title = "Educational Composition by Sex - Technology Occupations",
-                                 plot.fig.num = "Figure X", caption = "Source: 2016 Canadian Census, BII+E Analysis") #By Sex educational stacked bar
-
 
 
 ###############################
@@ -69,6 +64,71 @@ noc.cip.change <- noc.cip.change[CIP != "Total - Major field of study - Classifi
                                    CIP != "No postsecondary certificate, diploma or degree"] #Filter out the "big" stuff that messes up the visualization
 
 setkey(noc.cip.change,CIP,Year) #Order the table to prepare to plot change arrow graphs
+
+
+####################################
+#Pay by educational level in Technology
+noc.educ.pay.tech <- noc.dem.master[GEO.NAME == "Canada" & IM.STATUS.ID == 1 & WA.ID == 1 & AGE5.ID == 1 & SEX3.ID == 1,.(sum(TOT),wt.mean(AVG.INC,TOT)),by=.(tech,EDUC,EDUC.ID)]
+noc.educ.pay.tech.decomp <- noc.dem.master[GEO.NAME == "Canada" & IM.STATUS.ID == 1 & WA.ID == 1 & AGE5.ID == 1,.(sum(TOT),wt.mean(AVG.INC,TOT)),by=.(tech,EDUC,EDUC.ID,SEX3,SEX3.ID)]
+noc.educ.pay.tech.decomp <- noc.educ.pay.tech.decomp[EDUC != "Total - Highest certificate, diploma or degree" & SEX3 != "Total - Sex"]
+noc.educ.pay.tech.decomp <- noc.educ.pay.tech.decomp[tech==1]
+noc.educ.pay.tech.decomp[,educ.dum:=0]
+noc.educ.pay.tech.decomp[EDUC=="University certificate, diploma or degree at bachelor level or above",educ.dum:=1]
+noc.educ.pay.tech.decomp <- noc.educ.pay.tech.decomp[,wt.mean(V2,V1),by=.(SEX3,SEX3.ID,educ.dum)]
+noc.educ.pay.tech.decomp[,SEX3.ID:=SEX3.ID-2]
+
+
+
+###################################
+#Detailed CIP
+load("NOC_Demographics/noc_cip_2016_processed.RDA")
+
+################
+#Gephi stuff
+noc.cip.2016.gephi <- noc.cip.2016[EDUC.ID == 1 & AGE4.ID == 1]
+noc.cip.2016.gephi <- noc.cip.2016.gephi[TOT>=50]
+gephi.noc.nodes <- unique(noc.cip.2016.gephi[,.(OCC693,tech)])
+gephi.cip.nodes <- unique(noc.cip.2016.gephi[,CIP432])
+noc.cip.2016.gephi[,c("TOT.MALE","TOT.FEMALE"):=NULL]
+noc.cip.2016.gephi[,c("EDUC","EDUC.ID","CIP432.ID","AGE4","AGE4.ID","OCC693.ID"):=NULL]
+noc.cip.2016.gephi[,c("noc","cip","tech"):=NULL]
+names(noc.cip.2016.gephi) <- c("Source","Target","Weight")
+
+write.csv(noc.cip.2016.gephi,file="Gephi/noc_cip_2016_gephi.csv",row.names = FALSE)
+
+
+
+gephi.cip.nodes <- data.table(CIP432=gephi.cip.nodes,type="Major Concentration")
+names(gephi.cip.nodes) <- c("Id","Type")
+names(gephi.noc.nodes) <- c("Id","Type")
+gephi.cip.noc.nodes <- rbindlist(list(gephi.cip.nodes,gephi.noc.nodes))
+write.csv(gephi.cip.noc.nodes,file="Gephi/nodes_noc_cip.csv",row.names = FALSE)
+
+
+###################################
+#Regressional decomposition
+
+
+
+pay.premium.by.educ <- plot.change.arrow.bf(noc.educ.pay.tech[EDUC.ID != 1],"V2",
+                                            cat="EDUC",
+                                            time.var = "tech", 
+                                            unit.x="$",
+                                            plot.title = "Pay Premium in Tech by Educational Groups",
+                                            plot.fig.num="Figure x",
+                                            caption="Source: 2016 Canadian Census")
+
+
+educ.graph <- plot.column.bf(noc.demo.educ.prim[SEX=="Total - Sex" & Education!="Total"],
+                             "pct","tech",stacked = TRUE,group.by = "Education",
+                             label.unit = "%",plot.title = "Educational Composition of Tech Occupations",
+                             plot.fig.num = "Figure X",caption = "Source: 2016 Canadian Census, BII+E Analysis") #General educational stacked bar
+
+educ.graph.sex <- plot.column.bf(noc.demo.educ.prim[SEX != "Total - Sex" & tech=="Tech Occupation" & Education != "Total"],
+                                 "pct","SEX",stacked = TRUE, group.by = "Education",
+                                 label.unit = "%",
+                                 plot.title = "Educational Composition by Sex - Technology Occupations",
+                                 plot.fig.num = "Figure X", caption = "Source: 2016 Canadian Census, BII+E Analysis") #By Sex educational stacked bar
 
 
 

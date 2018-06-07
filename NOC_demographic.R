@@ -11,7 +11,7 @@
 # -      NOC_Demographics/noc_2016_educ_processed.RDA
 # - Run to prepare and clean big demographic datasets related to Occupations - Make sure all references to new column names (if any) are updated in other files
 ###################################
-
+Sys.setlocale('LC_ALL','C') #Set encoding to deal with French characters
 
 library(data.table)
 library(BFTheme)
@@ -59,6 +59,10 @@ noc.dem[,c("GNR","DATA.QUAL.FLAG","LF.STATUS.NOTE","AGE.NOTE","SEX.NOTE","NOC.ID
 
 noc.dem[,tech:=0] #Set the tech flag vs non tech flag
 noc.dem[NOC %in% tech.occ[,noc_title],tech:=1] #Set the tech flag
+noc.dem[,digital:=0] #Set digital flag 
+noc.dem[NOC %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
+noc.dem[,high.tech:=0] #Set High-tech
+noc.dem[NOC %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
 
 
 save(noc.dem,file="NOC_Demographics/noc_2016_processed.RDA") #This Saves the processed file
@@ -78,6 +82,10 @@ noc.dem.master[,NOC.NUM:=NULL]
 noc.dem.master[,c("GNR","DATA.QUAL.FLAG","IM.STATUS.NOTE","EDUC.NOTE","WA.NOTE","AGE5.NOTE","SEX3.NOTE","NOC691.NOTES"):=NULL]
 noc.dem.master[,tech:=0]
 noc.dem.master[NOC691 %in% tech.occ[,noc_title],tech:=1]
+noc.dem.master[,digital:=0] #Set digital flag 
+noc.dem.master[NOC691 %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
+noc.dem.master[,high.tech:=0] #Set High-tech
+noc.dem.master[NOC691 %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
 
 save(noc.dem.master, file="NOC_Demographics/noc_2016_PR_processed.RDA")
 
@@ -97,6 +105,11 @@ noc.2006[,Occ.Num:=tstrsplit(Occ," ",keep=1)]
 noc.2006 <- noc.2006[nchar(Occ.Num)==4]
 noc.2006[,tech:="Non Tech Occupation"] #Set base for non tech occupations
 noc.2006[Occ %in% noc.classification.2006[Tech==1,str_c(Code,`Class title`,sep=" ")],tech:="Tech Occupation"] #Select only the tech occupations
+noc.2006[,GEO.NAME:=tstrsplit(Geo,"\\(",keep=1)]
+noc.2006[,GEO.CODE:=tstrsplit(Geo,"\\(",keep=2)]
+noc.2006[,GEO.CODE:=tstrsplit(GEO.CODE,"\\)",keep=1)]
+noc.2006 <- noc.2006[nchar(GEO.CODE)<=5]
+
 
 save(noc.2006,file="NOC_Demographics/noc_2006_processed.RDA")
 
@@ -117,7 +130,68 @@ noc.demo.educ[,NOC.ID:=tstrsplit(NOC," ",keep=1)] #Split NOC codes
 noc.demo.educ <- noc.demo.educ[nchar(NOC.ID)==4] #Only keep 4 code stuff
 noc.demo.educ[,tech:="Not Tech Occupation"] #Set tech dum to be 0
 noc.demo.educ[NOC %in% tech.occ[,noc_title], tech:="Tech Occupation"] #Set tech dum to be 1 for tech occupations
+noc.dem.educ[NOC %in% tech.occ[,noc_title],tech:=1]
+noc.dem.educ[,digital:=0] #Set digital flag 
+noc.dem.educ[NOC %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
+noc.dem.educ[,high.tech:=0] #Set High-tech
+noc.dem.educ[NOC %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
 
 save(noc.demo.educ,file="NOC_Demographics/noc_2016_educ_processed.RDA")
 
 rm(noc.demo.educ)
+
+
+
+
+###################
+#Aboriginal Identity data - table 98-400-X2016357_English_CSV_data.csv
+load("NOC_Demographics/noc_abo.RDA")
+names(noc.abo) <- c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR",
+                    "DATA.QUALITY.FLAG","ALT.GEO.CODE","ABO","ABO.ID","ABO.NOTE",
+                    "EDUC","EDUC.ID","EDUC.NOTE","WA","WA.ID","WA.NOTE","AGE4","AGE4.ID",
+                    "AGE4.NOTE","SEX3","SEX3.ID","SEX3.NOTE","OCC691","OCC691.ID","OCC691.NOTE",
+                    "TOT","MED.INC","AVG.INC")
+
+noc.abo[,c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUALITY.FLAG","ALT.GEO.CODE","ABO.NOTE","EDUC.NOTE",
+           "WA.NOTE","AGE4.NOTE","SEX3.NOTE","OCC691.NOTE"):=NULL]
+noc.abo <- noc.abo[TOT>0]
+noc.abo[,NOC:=tstrsplit(OCC691," ",keep=1)]
+noc.abo <- noc.abo[nchar(NOC)==4]
+noc.abo[,tech:="Not Tech Occupation"]
+noc.abo[OCC691 %in% tech.occ[,noc_title], tech:="Tech occupation"]
+noc.abo[OCC691 %in% tech.occ[,noc_title],tech:=1]
+noc.abo[,digital:=0] #Set digital flag 
+noc.abo[OCC691 %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
+noc.abo[,high.tech:=0] #Set High-tech
+noc.abo[OCC691 %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
+
+save(noc.abo,file="NOC_Demographics/noc_abo_processed.RDA")
+
+rm(noc.abo)
+
+
+################
+#CIP very low level 98-400-X2016258_English_CSV_data
+load("NOC_Demographics/noc_cip_2016.RDA")
+names(noc.cip.2016) <- c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUALITY.FLAG","ALT.GEO.CODE","CIP432","CIP432.ID","CIP432.NOTES",
+                         "EDUC","EDUC.ID","EDUC.NOTES","AGE4","AGE4.ID","AGE4.NOTES","OCC693","OCC693.ID","OCC693.NOTES","TOT","TOT.MALE","TOT.FEMALE")
+
+noc.cip.2016 <- noc.cip.2016[TOT>0]
+noc.cip.2016[,noc:=tstrsplit(OCC693," ",keep=1)]
+noc.cip.2016 <- noc.cip.2016[nchar(noc)==4]
+noc.cip.2016[,cip:=tstrsplit(CIP432," ",keep=1)]
+noc.cip.2016 <- noc.cip.2016[nchar(cip)==5 & cip != "Other" & cip != "Total"]
+noc.cip.2016[,tech:="Not Tech Occupation"]
+noc.cip.2016[OCC693 %in% tech.occ[,noc_title], tech:="Tech occupation"]
+noc.cip.2016[OCC693 %in% tech.occ[,noc_title],tech:=1]
+noc.cip.2016[,digital:=0] #Set digital flag 
+noc.cip.2016[OCC693 %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
+noc.cip.2016[,high.tech:=0] #Set High-tech
+noc.cip.2016[OCC693 %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
+noc.cip.2016[,c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUALITY.FLAG","ALT.GEO.CODE","CIP432.NOTES","EDUC.NOTES","AGE4.NOTES",
+                "OCC693.NOTES"):=NULL]
+
+
+save(noc.cip.2016,file="NOC_Demographics/noc_cip_2016_processed.RDA")
+rm(noc.cip.2016)
+
