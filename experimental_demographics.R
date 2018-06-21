@@ -4,7 +4,7 @@ library(extrafont)
 library(ggplot2)
 
 
-noc.dem <- fread("NOC_Demographics/NOC_demo.csv") #Load in noc demographic file
+load("NOC_Demographics/NOC_demo.RDA") #Load in noc demographic file
 names(noc.dem) <- c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUAL.FLAG","ALT.GEO.CODE","LF.STATUS","LF.STATUS.ID",
                     "LF.STATUS.NOTE","AGE","AGE.ID","AGE.NOTE","SEX","SEX.ID","SEX.NOTE","NOC","NOC.ID","NOC.NOTE","TOT","WORKER.NA","TOT.WORKER",
                     "TOT.EMP","TOT.SLF.EMP") #Change the names of the columns
@@ -79,4 +79,5 @@ test.plot <- ggplot() +
         axis.title.y = element_blank()) +
   guides(colour = guide_legend(title = "")) +
   labs(subtitle = "Employment in Tech Occupations by Age and Sex",title = "Figure X",caption = "Source: 2016 Canadian Census, BII+E Analysis, \nNote: Each point represents 1,000 people")
+
 

@@ -130,7 +130,7 @@ individual.ranking[,rank.V1.1.C.7.a:=frankv(innovation,order=-1)]
 
 #Calculate the harmonic mean
 for(n in seq(1,483)){
-  individual.ranking[n,harm.rank:=harmonic.mean(c(rank.2.B.3.b+1,rank.2.B.3.e+1,
+  individual.ranking[n,harm.rank:=harmonic.mean(c(get("rank.2.B.3.b")+1,rank.2.B.3.e+1,
                                                   rank.2.C.3.a+1,rank.4.A.3.b.1+1,rank.2.C.3.b+1,rank.2.C.9.a+1))]
 }
 
@@ -139,11 +139,18 @@ for(n in seq(1,483)){
                                                           rank.2.C.3.a+1,rank.4.A.3.b.1+1,rank.2.C.9.a+1))]
 }
 
+for(n in seq(1,483)){
+  individual.ranking[n,harm.rank.no.tel:=harmonic.mean(c(rank.2.B.3.b+1,rank.2.B.3.e+1,
+                                                         rank.2.C.3.a+1,rank.4.A.3.b.1+1,rank.2.C.3.b+1))]
+}
+
 #Define the technology sector
 individual.ranking[,tech:=0]
 individual.ranking[harm.rank < tech.cut.off, tech:=1]
 individual.ranking[harm.rank < tech.cut.off, digital:= "High-Tech"]
 individual.ranking[harm.rank < tech.cut.off & harm.rank.digital < digital.cut.off, digital:= "Digital"]
+individual.ranking[harm.rank.no.tel < tech.cut.off,tech.no.tel:=1]
+
 
 
 #Write the CSV out

@@ -12,7 +12,7 @@ library(skimr)
 library(doParallel)
 library(lindia)
 library(broom)
-setwd("~/GitHub/state-of-tech-sector-2017/NOC/PCA")
+setwd("NOC/PCA")
 
 #Set up data
 full.avg.crosswalk.skill <- readRDS("full.avg.crosswalk.skill.Rds")
