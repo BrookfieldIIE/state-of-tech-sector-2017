@@ -137,3 +137,12 @@ d_tsne_1 = as.data.frame(tsne_model_1$Y)
 ggplot(d_tsne_1, aes(x=V1, y=V2)) +  
   geom_point() +
   brookfield.base.theme()
+
+## Factor analysis
+#https://data.library.virginia.edu/getting-started-with-factor-analysis/
+
+library(psych)
+fa <- factanal(covmat = cov(onet.s.f), factors = 10, n.obs = 109, rotation = "varimax")
+fa
+
+fa.pred <- fa$loadings
