@@ -16,6 +16,7 @@ noc.vis.2016.by.tech <- noc.vis.2016.by.tech[AGE4=="25 to 64 years"]
 
 
 noc.vis.2016.by.tech.sumstat <- noc.vis.2016.by.tech[EDUC7.ID==1 & WA4.ID==1 & AGE4.ID==3 & SEX3.ID==1]
+noc.vis.2016.by.tech.sumstat[,pct:=100*min(V1)/sum(V1),by=VIS15]
 
 noc.vis.2016.by.tech.gen <- noc.vis.2016.by.tech[EDUC7.ID==1 & WA4.ID == 1 & AGE4.ID == 3 & SEX3.ID %in% c(2,3)]
 
@@ -39,7 +40,7 @@ participation.plot <- plot.scatter.bf(noc.vis.2016.by.tech.gen.sum[tech == "Tech
                                       plot.fig.num = "Figure x",
                                       caption = "Source: 2016 Canadian Census \nNote: Each Point Represents a Visible Minority - Sex pair")
 
-participation.plot <- participation.plot + geom_text_repel(family="RooneySans-Regular",aes(label = VIS15),force=2)
+participation.plot <- participation.plot + geom_text_repel(family="RooneySans-Regular",aes(label = VIS15),force=2, segment.colour=set.colours(1,categorical.choice="grey"), alpha=0.7)
 
 
 plot.vis.gen <- plot.scatter.bf(noc.vis.2016.by.tech.gen[VIS15 != "Total - Visible minority" &
@@ -91,4 +92,5 @@ plot.with.aboriginal <- plot.scatter.bf(noc.vis.2016.by.tech.gen[VIS15 != "Total
 
 plot.with.aboriginal <- plot.with.aboriginal + geom_point(data=noc.abo.sumstat.w,aes(non.tech,tech,colour=SEX3),size=2.3) +
   scale_colour_manual(values = set.colours(2,categorical.choice = c("dark.blue","light.blue"))) +
+  guides(colour = guide_legend(title="Sex")) +
   geom_text_repel(data=noc.abo.sumstat.w,aes(label=ABO),family="RooneySans-Regular",force=2, segment.colour = set.colours(1,categorical.choice="grey"))

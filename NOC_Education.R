@@ -86,13 +86,19 @@ load("NOC_Demographics/noc_cip_2016_processed.RDA")
 ################
 #Gephi stuff
 noc.cip.2016.gephi <- noc.cip.2016[EDUC.ID == 1 & AGE4.ID == 1]
-noc.cip.2016.gephi <- noc.cip.2016.gephi[TOT>=50]
-gephi.noc.nodes <- unique(noc.cip.2016.gephi[,.(OCC693,tech)])
-gephi.cip.nodes <- unique(noc.cip.2016.gephi[,CIP432])
+noc.cip.2016.gephi[,CIP432:=str_sub(CIP432,6)]
+noc.cip.2016.gephi[,OCC693:=str_sub(OCC693,5)]
+
+gephi.noc.nodes <- unique(noc.cip.2016.gephi[TOT>=100,.(OCC693,tech)])
+gephi.cip.nodes <- unique(noc.cip.2016.gephi[TOT>=100,CIP432])
+noc.cip.2016.gephi[,tot.cip:=sum(TOT),by=CIP432]
+noc.cip.2016.gephi[,pct:=100*TOT/tot.cip]
 noc.cip.2016.gephi[,c("TOT.MALE","TOT.FEMALE"):=NULL]
 noc.cip.2016.gephi[,c("EDUC","EDUC.ID","CIP432.ID","AGE4","AGE4.ID","OCC693.ID"):=NULL]
-noc.cip.2016.gephi[,c("noc","cip","tech"):=NULL]
-names(noc.cip.2016.gephi) <- c("Source","Target","Weight")
+noc.cip.2016.gephi[,c("noc","cip","tech","digital","high.tech"):=NULL]
+names(noc.cip.2016.gephi) <- c("Source","Target","TOT","TOT.CIP","Weight")
+noc.cip.2016.gephi <- noc.cip.2016.gephi[TOT>100]
+
 
 write.csv(noc.cip.2016.gephi,file="Gephi/noc_cip_2016_gephi.csv",row.names = FALSE)
 

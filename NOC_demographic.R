@@ -62,7 +62,7 @@ noc.dem[NOC %in% tech.occ[,noc_title],tech:=1] #Set the tech flag
 noc.dem[,digital:=0] #Set digital flag 
 noc.dem[NOC %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
 noc.dem[,high.tech:=0] #Set High-tech
-noc.dem[NOC %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
+noc.dem[NOC %in% tech.occ[digital=="High-Tech",noc_title],high.tech:=1] #Set High-tech
 
 
 save(noc.dem,file="NOC_Demographics/noc_2016_processed.RDA") #This Saves the processed file
@@ -85,7 +85,7 @@ noc.dem.master[NOC691 %in% tech.occ[,noc_title],tech:=1]
 noc.dem.master[,digital:=0] #Set digital flag 
 noc.dem.master[NOC691 %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
 noc.dem.master[,high.tech:=0] #Set High-tech
-noc.dem.master[NOC691 %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
+noc.dem.master[NOC691 %in% tech.occ[digital=="High-Tech",noc_title],high.tech:=1] #Set High-tech
 
 save(noc.dem.master, file="NOC_Demographics/noc_2016_PR_processed.RDA")
 
@@ -134,7 +134,7 @@ noc.dem.educ[NOC %in% tech.occ[,noc_title],tech:=1]
 noc.dem.educ[,digital:=0] #Set digital flag 
 noc.dem.educ[NOC %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
 noc.dem.educ[,high.tech:=0] #Set High-tech
-noc.dem.educ[NOC %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
+noc.dem.educ[NOC %in% tech.occ[digital=="High-Tech",noc_title],high.tech:=1] #Set High-tech
 
 save(noc.demo.educ,file="NOC_Demographics/noc_2016_educ_processed.RDA")
 
@@ -163,7 +163,7 @@ noc.abo[OCC691 %in% tech.occ[,noc_title],tech:=1]
 noc.abo[,digital:=0] #Set digital flag 
 noc.abo[OCC691 %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
 noc.abo[,high.tech:=0] #Set High-tech
-noc.abo[OCC691 %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
+noc.abo[OCC691 %in% tech.occ[digital=="High-Tech",noc_title],high.tech:=1] #Set High-tech
 
 save(noc.abo,file="NOC_Demographics/noc_abo_processed.RDA")
 
@@ -182,12 +182,11 @@ noc.cip.2016 <- noc.cip.2016[nchar(noc)==4]
 noc.cip.2016[,cip:=tstrsplit(CIP432," ",keep=1)]
 noc.cip.2016 <- noc.cip.2016[nchar(cip)==5 & cip != "Other" & cip != "Total"]
 noc.cip.2016[,tech:="Not Tech Occupation"]
-noc.cip.2016[OCC693 %in% tech.occ[,noc_title], tech:="Tech occupation"]
-noc.cip.2016[OCC693 %in% tech.occ[,noc_title],tech:=1]
+noc.cip.2016[OCC693 %in% tech.occ[,noc_title], tech:="Tech Occupation"]
 noc.cip.2016[,digital:=0] #Set digital flag 
 noc.cip.2016[OCC693 %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
 noc.cip.2016[,high.tech:=0] #Set High-tech
-noc.cip.2016[OCC693 %in% tech.occ[digital=="High-Tech"],high.tech:=1] #Set High-tech
+noc.cip.2016[OCC693 %in% tech.occ[digital=="High-Tech",noc_title],high.tech:=1] #Set High-tech
 noc.cip.2016[,c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUALITY.FLAG","ALT.GEO.CODE","CIP432.NOTES","EDUC.NOTES","AGE4.NOTES",
                 "OCC693.NOTES"):=NULL]
 
@@ -195,3 +194,19 @@ noc.cip.2016[,c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUAL
 save(noc.cip.2016,file="NOC_Demographics/noc_cip_2016_processed.RDA")
 rm(noc.cip.2016)
 
+################
+#NOC AGE
+load("NOC_Demographics/noc_age_2016.RDA")
+
+names(noc.age.2016) <- c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUALITY.FLAG","ALT.GEO.CODE",
+                         "EMP","EMP.ID","EMP.NOTE","WA","WA.ID","WA.NOTE","AGE6","AGE6.ID","AGE6.NOTE","SEX3","SEX3.ID","SEX3.NOTE","OCC691","OCC691.ID","OCC691.NOTE",
+                         "FL.TOT","ENGL.TOT","FRE.TOT","ENGLFRE.TOT","NO.TOT","MIN.TOT","MIN.PCT")
+
+noc.age.2016[,c("ENGL.TOT","FRE.TOT","ENGLFRE.TOT","NO.TOT","MIN.TOT","MIN.PCT"):=NULL]
+noc.age.2016[,c("EMP.NOTE","WA.NOTE","AGE6.NOTE","SEX3.NOTE","OCC691.NOTE"):=NULL]
+noc.age.2016 <- noc.age.2016[WA.ID==1]
+noc.age.2016[,NOC:=tstrsplit(OCC691," ",keep=1)]
+noc.age.2016 <- noc.age.2016[nchar(NOC)==4]
+noc.age.2016[,tech:="Not Tech Occupation"]
+noc.age.2016[OCC691 %in% tech.occ[,noc_title],tech:="Tech Occupation"]
+save(noc.age.2016, file="noc_age_2016_processed.RDA")
