@@ -4,6 +4,7 @@ library(tidyr)
 library(tidyverse)
 library(BFTheme)
 library(skimr)
+library(data.table)
 setwd("~/GitHub/state-of-tech-sector-2017")
 
 source("NOC.R")
@@ -26,49 +27,77 @@ noc.naics <- read_csv("98-400-X2016298_English_CSV_data.csv", n_max = 239085)
 names(noc.naics) <- c(census.2016.varnames[names(noc.naics)[1:19]], "TOT", "Employed", "Unemployed")
 
 noc.naics <- noc.naics %>%
-  #filter(NOC693A %in% tech.occ.def$noc_title, AGE5 == "Total - Age", SEX3 == "Total - Sex") %>%
   filter(AGE5 == "Total - Age", SEX3 == "Total - Sex") %>%
   select(NAICS23A, NOC693A, TOT, Employed, Unemployed) %>%
-  left_join(tech.occ.def, by = c("NOC693A" = "noc_title" ))
+  left_join(tech.occ.def, by = c("NOC693A" = "noc_title" )) %>%
+  mutate(NOCDigit = word(NOC693A, start = 1, end = 1, sep = fixed(" "))) %>%
+  filter(str_length(NOCDigit) == 4) %>%
+  select(-NOCDigit)
+
+sum(noc.naics$Employed)
 
 noc.naics.sum <- noc.naics %>%
   filter(NAICS23A != "Total - Industry - North American Industry Classification System (NAICS) 2012",
          NAICS23A != "Industry - not applicable") %>%
   select(-NOC693A, -TOT, -Unemployed, -noc_code) %>%
   group_by(NAICS23A, digital) %>%
-  summarise_all(sum)
+  summarise_all(sum) %>%
+  ungroup()
 
 noc.naics.sum$digital <- noc.naics.sum$digital %>%
   replace_na("Non-Tech")
 
+sum(noc.naics.sum$Employed)
+
 #Absolute
 noc.naics.abs <- noc.naics.sum %>%
-  filter(NAICS23A != "All industries", digital != "Non-Tech")
+  filter(NAICS23A != "All industries", digital != "Non-Tech") %>%
+  group_by(NAICS23A) %>%
+  mutate(TechTot = sum(Employed)) %>%
+  ungroup() %>%
+  mutate(NAICS23A = word(NAICS23A, start = 2, end = -1, sep = fixed(" "))) %>%
+  mutate(NAICS23A = str_wrap(NAICS23A, width = 30)) %>%
+  arrange(desc(TechTot)) %>%
+  top_n(20, TechTot) %>%
+  select(-TechTot)
 
-#Share of industry (not complete)
+sum(noc.naics.abs$Employed)
+
+#Share of industry - double check math
 noc.naics.tot <- noc.naics.sum %>%
   filter(NAICS23A != "All industries") %>%
   group_by(NAICS23A) %>%
   select(-digital) %>%
   summarise_all(sum)
 
+sum(noc.naics.tot$Employed)
+
 noc.naics.share <- noc.naics.sum %>%
   filter(NAICS23A != "All industries", digital != "Non-Tech") %>%
   left_join(noc.naics.tot, by = "NAICS23A") %>%
   mutate(share = Employed.x/Employed.y*100) %>%
-  select(-Employed.x, -Employed.y)
+  select(-Employed.x, -Employed.y) %>%
+  group_by(NAICS23A) %>%
+  mutate(TechTot = sum(share)) %>%
+  ungroup() %>%
+  arrange(desc(TechTot)) %>%
+  top_n(20, TechTot) %>%
+  select(-TechTot) %>%
+  mutate(NAICS23A = word(NAICS23A, start = 2, end = -1, sep = fixed(" "))) %>%
+  mutate(NAICS23A = str_wrap(NAICS23A, width = 30))
 
 #Plot abs
 plot.column.bf(noc.naics.abs, x = "Employed", cat = "NAICS23A", group.by = "digital", 
                stacked = TRUE,
-               order.bar = "descending")
+               order.bar = "descending",
+               caption = "StatCan PID 98-400-X2016298")
+
 
 #Plot share of industry
 plot.column.bf(noc.naics.share, x = "share", cat = "NAICS23A", group.by = "digital", 
                stacked = TRUE,
                order.bar = "descending",
-               label.unit = "%")
+               label.unit = "%",
+               caption = "StatCan PID 98-400-X2016298")
 
 write.csv(noc.naics,"noc.naics.csv")
-  
-
