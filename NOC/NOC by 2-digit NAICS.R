@@ -90,6 +90,7 @@ noc.naics.share <- noc.naics.sum %>%
 plot.column.bf(noc.naics.abs, x = "Employed", cat = "NAICS23A", group.by = "digital", 
                stacked = TRUE,
                order.bar = "descending",
+               y.axis = "Employment",
                caption = "StatCan PID 98-400-X2016298")
 
 
@@ -98,6 +99,7 @@ plot.column.bf(noc.naics.share, x = "share", cat = "NAICS23A", group.by = "digit
                stacked = TRUE,
                order.bar = "descending",
                label.unit = "%",
+               y.axis = "Share of industry employment",
                caption = "StatCan PID 98-400-X2016298")
 
 write.csv(noc.naics,"noc.naics.csv")
