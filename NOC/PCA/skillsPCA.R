@@ -131,12 +131,14 @@ summary(onet.pca.model)
 #https://www.r-bloggers.com/playing-with-dimensions-from-clustering-pca-t-sne-to-carl-sagan/
 
 tsne_model_1 = Rtsne(as.matrix(onet.s.f[,-1]), check_duplicates=FALSE, pca=TRUE, perplexity=30, theta=0.5, dims=2)
-d_tsne_1 = as.data.frame(tsne_model_1$Y) 
+d_tsne_1 = as.data.frame(tsne_model_1$Y)
+d_tsne_1 = cbind(d_tsne_1, rownames(onet.s.f))
 
 ## plotting the results without clustering
-ggplot(d_tsne_1, aes(x=V1, y=V2)) +  
+ggplot(d_tsne_1, aes(x=V1, y=V2, label = rownames(onet.s.f))) +  
   geom_point() +
-  brookfield.base.theme()
+  brookfield.base.theme() +
+  geom_text(check_overlap = TRUE, size=4, angle = 45)
 
 ## Factor analysis
 #https://data.library.virginia.edu/getting-started-with-factor-analysis/
