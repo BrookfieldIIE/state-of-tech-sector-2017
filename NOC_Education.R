@@ -78,6 +78,13 @@ noc.educ.pay.tech.decomp <- noc.educ.pay.tech.decomp[,wt.mean(V2,V1),by=.(SEX3,S
 noc.educ.pay.tech.decomp[,SEX3.ID:=SEX3.ID-2]
 
 
+noc.dem.master[,educ.dum:=0]
+noc.dem.master[EDUC=="University certificate, diploma or degree at bachelor level or above",educ.dum:=1]
+noc.educ.pay.tech.decomp <- noc.dem.master[GEO.NAME == "Canada" & IM.STATUS.ID == 1 & WA.ID == 1 & AGE5.ID == 1 & EDUC.ID != 1,
+                                           .(sum(TOT),wt.mean(AVG.INC,TOT),wt.sd(AVG.INC,TOT)),
+                                           by=.(tech,educ.dum,SEX3,SEX3.ID)]
+
+
 
 ###################################
 #Detailed CIP
