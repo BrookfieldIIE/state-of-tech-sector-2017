@@ -45,7 +45,6 @@ load("NOC_Demographics/NOC_demo.RDA") #Load in noc demographic file for 2016 cen
 names(noc.dem) <- c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUAL.FLAG","ALT.GEO.CODE","LF.STATUS","LF.STATUS.ID",
                     "LF.STATUS.NOTE","AGE","AGE.ID","AGE.NOTE","SEX","SEX.ID","SEX.NOTE","NOC","NOC.ID","NOC.NOTE","TOT","WORKER.NA","TOT.WORKER",
                     "TOT.EMP","TOT.SLF.EMP") #Change the names of the columns
-
 noc.dem <- noc.dem[TOT>0] #Remove everything that has 0 count for the total number
 noc.dem[,NOC.NUM:=tstrsplit(NOC," ",keep=1)] #Extract the NOC codes
 noc.dem <- noc.dem[nchar(NOC.NUM)==4] #Filter out everything but 4-level NOCs
@@ -105,9 +104,8 @@ noc.2006[,Occ.Num:=tstrsplit(Occ," ",keep=1)]
 noc.2006 <- noc.2006[nchar(Occ.Num)==4]
 noc.2006[,tech:="Non Tech Occupation"] #Set base for non tech occupations
 noc.2006[Occ %in% noc.classification.2006[Tech==1,str_c(Code,`Class title`,sep=" ")],tech:="Tech Occupation"] #Select only the tech occupations
-noc.2006[,GEO.NAME:=tstrsplit(Geo,"\\(",keep=1)]
-noc.2006[,GEO.CODE:=tstrsplit(Geo,"\\(",keep=2)]
-noc.2006[,GEO.CODE:=tstrsplit(GEO.CODE,"\\)",keep=1)]
+noc.2006[,GEO.NAME:=str_squish(str_extract(Geo,"[^()]+"))]
+noc.2006[,GEO.CODE:=str_remove_all(str_extract(Geo,"\\([^()]+\\)"),"\\(|\\)")]
 noc.2006 <- noc.2006[nchar(GEO.CODE)<=5]
 
 

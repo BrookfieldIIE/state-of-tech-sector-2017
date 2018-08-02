@@ -182,7 +182,7 @@ noc.dem.geo.relative <- plot.column.bf(noc.dem.tech.map.top.pct.dig[Year==2016],
                                        group.by = "digital.lab",
                                        colours = set.colours(2,categorical.choice = c("dark.blue","light.blue")),
                                        label.unit = "%",
-                                       plot.title = "Geographical Concentration (%) of Technology Occupations, 2006 Canada",
+                                       plot.title = "Geographical Concentration (%) of Technology Occupations, 2016 Canada",
                                        plot.fig.num = "Figure x")
 
 

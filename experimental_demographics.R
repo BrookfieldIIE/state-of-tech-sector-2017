@@ -61,14 +61,28 @@ test.plot <- ggplot() +
   geom_point(data=ninth.set,aes(x,y,colour = colour)) +
   geom_point(data=tenth.set,aes(x,y,colour = colour)) +
   scale_colour_manual(values = set.colours(2,categorical.choice = c("pink","dark.blue"))) +
-  annotate("text",x=0,y=5,label="15-24",size=3) +
-  annotate("text",x=0,y=17,label = "25-34",size=3) +
-  annotate("text",x=0,y=29,label = "35-44",size=3) +
-  annotate("text",x=0,y=41,label="45-54",size=3) +
-  annotate("text",x=0,y=53 , label = "55-64",size=3) +
-  annotate("text",x=0,y=-1, label = "Age") +
-  annotate("text",x=-7,y=-2,label="Male",size=4) +
-  annotate("text",x=7,y=-2,label = "Female",size=4) +
+  annotate("text", x = 0, y = 5, label = "15-24",size = 3, family = "RooneySans-Regular") +
+  annotate("text", x = 0, y = 17, label = "25-34",size = 3, family = "RooneySans-Regular") +
+  annotate("text", x = 0, y = 29, label = "35-44",size = 3, family = "RooneySans-Regular") +
+  annotate("text", x = 0, y = 41, label = "45-54",size = 3, family = "RooneySans-Regular") +
+  annotate("text", x = 0, y = 53 , label = "55-64",size = 3, family = "RooneySans-Regular") +
+  
+  annotate("text", x = 0, y = 58, label = "Age",size = 3, family = "RooneySans-Regular") +
+  annotate("text", x = -7, y = 60, label = "Male",size = 4, family = "RooneySans-Regular") +
+  annotate("text", x = 7, y = 60, label = "Female",size = 4, family = "RooneySans-Regular") +
+  
+  annotate("text", x = 15.5, y = 5, label = "0.8%", family = "RooneySans-Regular") +
+  annotate("text", x = 21.5, y = 17, label = "2.2%", family = "RooneySans-Regular") +
+  annotate("text", x = 21.5, y = 29, label = "2.1%", family = "RooneySans-Regular") +
+  annotate("text", x = 23.5, y = 41, size = 4, family = "RooneySans-Regular",label = "1.5%") +
+  annotate("text", x = 17.5, y = 53, size = 4, family = "RooneySans-Regular", label = "0.7%") +
+  
+  annotate("text", x = -15.5, y = 5, label = "2.4%", family = "RooneySans-Regular") +
+  annotate("text", x = -22.5, y = 17, label = "7.5%", family = "RooneySans-Regular") +
+  annotate("text", x = -22.5, y = 29, label = "7.6%", family = "RooneySans-Regular") +
+  annotate("text", x = -24.5, y = 41, label = "6.1%", family = "RooneySans-Regular") +
+  annotate("text", x = -19.5, y = 53, label = "4.2%", family = "RooneySans-Regular") +
+  
   theme(axis.line.x = element_blank(),
         axis.line.y = element_blank(),
         axis.ticks.x = element_blank(),
@@ -76,8 +90,9 @@ test.plot <- ggplot() +
         axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.title.x = element_blank(),
-        axis.title.y = element_blank()) +
+        axis.title.y = element_blank(),
+        legend.text = element_text(size=4/0.352777778)) +
   guides(colour = guide_legend(title = "")) +
-  labs(subtitle = "Employment in Tech Occupations by Age and Sex",title = "Figure X",caption = "Source: 2016 Canadian Census, BII+E Analysis, \nNote: Each point represents 1,000 people")
+  labs(subtitle = "Employment in Tech Occupations by Age and Sex (Each dot is 1,000 people)",title = "Figure X",caption = "Source: 2016 Canadian Census, BII+E Analysis, \nNote: Each point represents 1,000 people")
 
 
