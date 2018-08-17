@@ -140,6 +140,23 @@ rm(noc.demo.educ)
 
 
 
+##################
+#Visible minority date
+load("NOC_Demographics/noc_vis_2016.RDA")
+names(noc.vis.2016) <- c(census.2016.varnames[names(noc.vis.2016)[1:25]],"TOT","MED.INC","AVG.INC")
+noc.vis.2016[,c("GNR","DATA.QUAL.FLAG","GEO.CODE","CENSUS.YEAR"):=NULL]
+noc.vis.2016[,c("VIS.MIN15.NOTES","EDUC7.NOTES","WA4.NOTES","AGE4D.NOTES","SEX3.NOTES","NOC691.NOTES"):=NULL]
+noc.vis.2016[,noc:=str_extract(NOC691,"[0-9]{1,4}")]
+noc.vis.2016 <- noc.vis.2016[nchar(noc)==4]
+noc.vis.2016[,tech:=0]
+noc.vis.2016[NOC691 %in% tech.occ[,noc_title],tech:=1]
+noc.vis.2016[,digital:=0] #Set digital flag 
+noc.vis.2016[NOC691 %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
+noc.vis.2016[,high.tech:=0] #Set High-tech
+noc.vis.2016[NOC691 %in% tech.occ[digital=="High-Tech",noc_title],high.tech:=1] #Set High-tech
+save(noc.vis.2016,file="NOC_Demographics/nov_vis_2016_processed.RDA")
+rm(noc.vis.2016)
+
 
 ###################
 #Aboriginal Identity data - table 98-400-X2016357_English_CSV_data.csv
@@ -155,8 +172,7 @@ noc.abo[,c("CENSUS.YEAR","GEO.CODE","GEO.LEVEL","GEO.NAME","GNR","DATA.QUALITY.F
 noc.abo <- noc.abo[TOT>0]
 noc.abo[,NOC:=tstrsplit(OCC691," ",keep=1)]
 noc.abo <- noc.abo[nchar(NOC)==4]
-noc.abo[,tech:="Not Tech Occupation"]
-noc.abo[OCC691 %in% tech.occ[,noc_title], tech:="Tech occupation"]
+noc.abo[,tech:=0]
 noc.abo[OCC691 %in% tech.occ[,noc_title],tech:=1]
 noc.abo[,digital:=0] #Set digital flag 
 noc.abo[OCC691 %in% tech.occ[digital=="Digital",noc_title],digital:=1] #Set digital flag 
