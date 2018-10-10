@@ -113,13 +113,14 @@ individual.ranking <- full.avg.crosswalk.skill[element.id %in% tech.skills,prod(
 individual.ranking <- reshape(individual.ranking,direction="wide",v.names = c("V1"),timevar="element.id",idvar="noc_title")
 
 #Merge all the tech skill raw score with innovation score
+# [Do we need this]
 setkey(individual.ranking,noc_title)
 setkey(full.avg.crosswalk.style.innovation,noc_title)
 individual.ranking <- individual.ranking[full.avg.crosswalk.style.innovation,nomatch=0]
-individual.ranking <- individual.ranking[!is.na(noc_title)]
+individual.ranking <- individual.ranking[!is.na(noc_title)] #One occupation dropped - why?
 
 
-#Rank for all the tech skills
+#Convert each Rank for all the tech skills
 for(n in tech.skills){
   individual.ranking[,str_c("rank.",n):=frankv(get(str_c("V1.",n)),order=-1)]
 }

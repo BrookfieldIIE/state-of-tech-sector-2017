@@ -1,0 +1,157 @@
+---
+title: "Defining Canada's Tech Occupations"
+author: "Viet Vu and Asher Zafar - Brookfield Institute for Innovation + Entrepreneurship"
+date: "October 10, 2018"
+output: rmarkdown::github_document
+---
+
+# Purpose
+
+This document accompanies the Brookfield Institute for Innovation + Entrepeneurship's (BII+E) 2018 *State of Canada's Tech Workers* report. In line with our open, iterative approach to research, it provides source code in the R programming language, and a walkthrough of our approach to defining tech occupations in Canada so that others can reproduce our work, build upon it, or suggest changes.
+
+This code and all other items in this repository are available under the *MIT License*. In a nutshell, use it freely, but please cite our work. We welcome pull requests and forks. If you'd like to discuss this work, feel free to contact [Viet](https://brookfieldinstitute.ca/team/viet-vu/) or [Asher](https://brookfieldinstitute.ca/team/asher-zafar/) directly.
+
+# Inputs and Outputs
+
+As described in the methodology sections of our report, we use two key data sources to define Canada's tech occupations. The first set of data on occupations is from Employment and Social Development Canada's (ESDC) National Occupational Classification (NOC) and associated linked data from Statistics Canada (StatCan). The second set of data on skills is from the US Occupational Information Network (O*NET). BII+E developed a crosswalk table to link these data sources, also available in this repository [Link to Viet's blog on the crosswalk].
+
+# Source Code
+
+## Load required R libraries.
+```{r message=FALSE}
+
+library(data.table)
+library(ggplot2)
+library(ggthemes)
+library(stringr)
+library(openxlsx)
+library(BFTheme)
+library(extrafont)
+library(psych)
+library(knitr)
+library(tidyverse)
+```
+
+## Process and Load O*NET and NOC data
+
+[Need source code for this - is it just flat files stored at RDA?]
+This code chunk reads in the O*NET data, combines it into a workable format for our analysis, and joins it with the NOC codes using the crosswalk.
+
+```{r message=FALSE}
+
+# Load data
+load("NOC/crosswalk.RDA") #Import Crosswalk file
+load("NOC/Knowledge.RDA")
+load("NOC/Skills.RDA")
+load("NOC/Work Activities.RDA")
+
+# Align O*NET skills, knowledge and work activity data
+knowledge <- as.data.table(knowledge)
+skill <- as.data.table(skill)
+work.activity <- as.data.table(work.activity)
+full.skill <- rbindlist(list(knowledge,skill,work.activity))
+names(full.skill) <- c("onet","title","element.id","element.name","scale.id","scale.name","value","N","stder","lci","uci","sup","nr","date","source")
+full.skill[,c("N","date","source","lci","uci"):=NULL]
+
+# Link O*NET data to NOC using crosswalk
+setkey(crosswalk,onet)
+setkey(full.skill,onet)
+full.crosswalk.skill <- crosswalk[full.skill,nomatch=0]
+full.avg.crosswalk.skill <- full.crosswalk.skill[,mean(value),by=.(noc_title,element.id,element.name,scale.id,scale.name)]
+
+#Clean environment
+rm(full.crosswalk.skill) #Remove redundancies
+rm(full.skill)
+rm(work.activity,skill,knowledge)
+
+```
+
+## Generate Rankings for NOCs based on O*NET Skills
+
+This chunk of code selects the technology skills of interest, computes our ranking of technology and digital occupations, and produces our final list of digital and high-tech occupations, as outlined in methodology for the report.
+
+```{r warning=FALSE}
+
+# Select the technology skills of interest for each NOC
+# [Remove unused skills]
+
+#tech.skills <- c("2.C.4.a","2.C.4.b","2.C.4.c","2.C.4.d","2.B.3.e","2.B.3.b","2.C.3.a","4.A.3.b.1","2.C.3.b","2.C.9.a")
+
+tech.skills <- c("2.B.3.b", "2.B.3.e", "2.C.3.a", "4.A.3.b.1", "2.C.3.b", "2.C.9.a")
+#4.A.3.b isn't in the data set...
+
+# [Creates one set of NA matched to full.avg.crosswalk.skill - why?]
+individual.ranking <- full.avg.crosswalk.skill[element.id %in% tech.skills,prod(V1),by=.(noc_title,element.id)]
+individual.ranking <- reshape(individual.ranking,direction="wide",v.names = c("V1"),timevar="element.id",idvar="noc_title")
+individual.ranking <- individual.ranking[!is.na(noc_title)]
+setkey(individual.ranking,noc_title)
+
+# Rank each NOC across each of the selected tech skills
+for(n in tech.skills){
+  individual.ranking[,str_c("rank.",n):=frankv(get(str_c("V1.",n)),order=-1)]
+}
+
+
+# Calculate the harmonic means for each NOC under three ranking systems
+
+## Rankings across all tech skills
+for(n in seq(1,483)){
+  individual.ranking[n,harm.rank:=harmonic.mean(c(get("rank.2.B.3.b")+1,rank.2.B.3.e+1,
+                                                  rank.2.C.3.a+1,rank.4.A.3.b.1+1,rank.2.C.3.b+1,rank.2.C.9.a+1))]
+}
+
+## Rankings across digital skills - used to distinguish between digital and high-tech occupations
+for(n in seq(1,483)){
+  individual.ranking[n,harm.rank.digital:=harmonic.mean(c(rank.2.B.3.e+1,
+                                                          rank.2.C.3.a+1,rank.4.A.3.b.1+1,rank.2.C.9.a+1))]
+}
+
+## Rankings excluding knowledge of telecommunications
+### Used for sensititivity analysis in report, but not for findings
+for(n in seq(1,483)){
+  individual.ranking[n,harm.rank.no.tel:=harmonic.mean(c(rank.2.B.3.b+1,rank.2.B.3.e+1,
+                                                         rank.2.C.3.a+1,rank.4.A.3.b.1+1,rank.2.C.3.b+1))]
+}
+
+# Select tech, high-tech, and digital occupations based on cut-offs from analyzing rankings
+
+tech.cut.off <- 25 #Define the tech cut off rank
+digital.cut.off <- 17 #Define digital cut-off rank
+
+individual.ranking[,tech:=0]
+individual.ranking[harm.rank < tech.cut.off, tech:=1]
+individual.ranking[harm.rank < tech.cut.off, digital:= "High-Tech"]
+individual.ranking[harm.rank < tech.cut.off & harm.rank.digital < digital.cut.off, digital:= "Digital"]
+individual.ranking[harm.rank.no.tel < tech.cut.off,tech.no.tel:=1]
+
+#Write the CSV out
+# [Rename fields to be easier to understand prior to output)
+individual.ranking <- individual.ranking %>%
+  rename("V1.2.C.3.a" = "2.C.3.a - Comp and Elec",
+         "V1.2.C.3.b" = "2.C.3.b - Eng and Tech",
+         "V1.2.C.9.a" = "2.C.9.a - Telco",
+         "V1.2.B.3.b" = "2.B.3.b - Tech Design",
+         "V1.2.B.3.e" = "2.B.3.e - Programming",
+         "V1.4.A.3.b.1"  = "4.A.3.b.1 - Inter w Comp",
+         "rank.2.C.3.a" = "Rank - Comp and Elec",
+         "rank.2.C.3.b" = "Rank - Eng and Tech",
+         "rank.2.C.9.a" = "Rank - Telco",
+         "rank.2.B.3.b" = "Rank - Tech Design",
+         "rank.2.B.3.e" = "Rank - Programming",
+         "rank.4.A.3.b.1" = "Rank - Inter w Comp"
+         )
+write.csv(individual.ranking,"tech.sector.def.csv",row.names=FALSE)
+
+#Clean up the environment for the next file
+rm(crosswalk, full.avg.crosswalk.skill)
+rm(digital.cut.off, n, tech.cut.off, tech.skills)
+
+```
+
+## Occupation List
+
+The full list of scores and rankings can be seen in the *tech.sector.def.csv* file that is included in this repo and output by this file. The list of occupational categories is reproduced below:
+
+```{r echo = FALSE, message=FALSE}
+kable(individual.ranking)
+```
