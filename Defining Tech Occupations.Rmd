@@ -7,9 +7,9 @@ output: rmarkdown::github_document
 
 # Purpose
 
-This document accompanies the Brookfield Institute for Innovation + Entrepeneurship's (BII+E) 2018 *State of Canada's Tech Workers* report. In line with our open, iterative approach to research, it provides source code in the R programming language, and a walkthrough of our approach to defining tech occupations in Canada so that others can reproduce our work, build upon it, or suggest changes.
+This document accompanies the Brookfield Institute for Innovation + Entrepeneurship's (BII+E) 2018 *State of Canada's Tech Workers* report. In line with our open, iterative approach to research, it provides source code in the R programming language, and a walkthrough of our approach to defining tech occupations in Canada so that others can reproduce our work, build upon it, or suggest changes. This document should be used in conjunction with the technical appendix from the report that explains the methodology more completely.
 
-This code and all other items in this repository are available under the *MIT License*. In a nutshell, use it freely, but please cite our work. We welcome pull requests and forks. If you'd like to discuss this work, feel free to contact [Viet](https://brookfieldinstitute.ca/team/viet-vu/) or [Asher](https://brookfieldinstitute.ca/team/asher-zafar/) directly.
+This code and all other items in this repository are available under the [*MIT License*](https://en.wikipedia.org/wiki/MIT_License). In a nutshell, use it freely, but please cite our work. We welcome pull requests and forks. If you'd like to discuss this work, feel free to contact [Viet](https://brookfieldinstitute.ca/team/viet-vu/) or [Asher](https://brookfieldinstitute.ca/team/asher-zafar/) directly.
 
 # Inputs and Outputs
 
@@ -30,11 +30,12 @@ library(extrafont)
 library(psych)
 library(knitr)
 library(tidyverse)
+library(DT)
 ```
 
 ## Process and Load O*NET and NOC data
 
-[Need source code for this - is it just flat files stored at RDA?]
+[Viet - Need source code for this - is it just flat files stored at RDA?]
 This code chunk reads in the O*NET data, combines it into a workable format for our analysis, and joins it with the NOC codes using the crosswalk.
 
 ```{r message=FALSE}
@@ -73,14 +74,9 @@ This chunk of code selects the technology skills of interest, computes our ranki
 ```{r warning=FALSE}
 
 # Select the technology skills of interest for each NOC
-# [Remove unused skills]
-
-#tech.skills <- c("2.C.4.a","2.C.4.b","2.C.4.c","2.C.4.d","2.B.3.e","2.B.3.b","2.C.3.a","4.A.3.b.1","2.C.3.b","2.C.9.a")
-
 tech.skills <- c("2.B.3.b", "2.B.3.e", "2.C.3.a", "4.A.3.b.1", "2.C.3.b", "2.C.9.a")
-#4.A.3.b isn't in the data set...
 
-# [Creates one set of NA matched to full.avg.crosswalk.skill - why?]
+# [Viet - this creates one set of NA matched to full.avg.crosswalk.skill - why?]
 individual.ranking <- full.avg.crosswalk.skill[element.id %in% tech.skills,prod(V1),by=.(noc_title,element.id)]
 individual.ranking <- reshape(individual.ranking,direction="wide",v.names = c("V1"),timevar="element.id",idvar="noc_title")
 individual.ranking <- individual.ranking[!is.na(noc_title)]
@@ -90,7 +86,6 @@ setkey(individual.ranking,noc_title)
 for(n in tech.skills){
   individual.ranking[,str_c("rank.",n):=frankv(get(str_c("V1.",n)),order=-1)]
 }
-
 
 # Calculate the harmonic means for each NOC under three ranking systems
 
@@ -124,34 +119,69 @@ individual.ranking[harm.rank < tech.cut.off, digital:= "High-Tech"]
 individual.ranking[harm.rank < tech.cut.off & harm.rank.digital < digital.cut.off, digital:= "Digital"]
 individual.ranking[harm.rank.no.tel < tech.cut.off,tech.no.tel:=1]
 
-#Write the CSV out
-# [Rename fields to be easier to understand prior to output)
+# Rename fields to be easier to understand prior to output
 individual.ranking <- individual.ranking %>%
-  rename("V1.2.C.3.a" = "2.C.3.a - Comp and Elec",
-         "V1.2.C.3.b" = "2.C.3.b - Eng and Tech",
-         "V1.2.C.9.a" = "2.C.9.a - Telco",
-         "V1.2.B.3.b" = "2.B.3.b - Tech Design",
-         "V1.2.B.3.e" = "2.B.3.e - Programming",
-         "V1.4.A.3.b.1"  = "4.A.3.b.1 - Inter w Comp",
-         "rank.2.C.3.a" = "Rank - Comp and Elec",
-         "rank.2.C.3.b" = "Rank - Eng and Tech",
-         "rank.2.C.9.a" = "Rank - Telco",
-         "rank.2.B.3.b" = "Rank - Tech Design",
-         "rank.2.B.3.e" = "Rank - Programming",
-         "rank.4.A.3.b.1" = "Rank - Inter w Comp"
+  rename("2.C.3.a - Comp and Elec" = "V1.2.C.3.a",
+         "2.C.3.b - Eng and Tech" = "V1.2.C.3.b",
+         "2.C.9.a - Telco" = "V1.2.C.9.a" ,
+         "2.B.3.b - Tech Design" = "V1.2.B.3.b",
+         "2.B.3.e - Programming" = "V1.2.B.3.e" ,
+         "4.A.3.b.1 - Inter w Comp" =  "V1.4.A.3.b.1",
+         "Rank - Comp and Elec" = "rank.2.C.3.a",
+         "Rank - Eng and Tech" = "rank.2.C.3.b",
+         "Rank - Telco" = "rank.2.C.9.a",
+         "Rank - Tech Design" = "rank.2.B.3.b",
+         "Rank - Programming" = "rank.2.B.3.e",
+         "Rank - Inter w Comp" = "rank.4.A.3.b.1"
          )
+
+#Create a NOC code and name field for convenience
+individual.ranking$noc_code <- substr(individual.ranking$noc_title, 1, 4)
+individual.ranking$noc_name <- substr(individual.ranking$noc_title, 5, nchar(individual.ranking$noc_title))
+
+#Write the CSV file containing the rankings
 write.csv(individual.ranking,"tech.sector.def.csv",row.names=FALSE)
 
-#Clean up the environment for the next file
+#Clean up the environment
 rm(crosswalk, full.avg.crosswalk.skill)
 rm(digital.cut.off, n, tech.cut.off, tech.skills)
 
 ```
 
+## Field List
+
+The full list of scores and rankings can be seen in the *tech.sector.def.csv* file that is included in this repo and output by the corresponding R Markdown file. The data fields in this file are described as follows:
+
+Field | Description
+----------------- | ---------------------------------------------
+**noc_title** | The four-digit NOC code and name for the occupation.
+**2.C.3.a - Comp and Elec** | BII+E score based on O*NET data for "Knowledge: Computers and Electronics".
+**2.C.3.b - Eng and Tech** | BII+E score based on O*NET data for "Knowledge: Engineering and Technology".
+**2.C.9.a - Telco**| BII+E score based on O*NET data for "Knowledge: Telecommunications".
+**2.B.3.b - Tech Design** | BII+E score based on O*NET data for "Skills: Technology Design".
+**2.B.3.e - Programming** | BII+E score based on O*NET data for "Skills: Programming".
+**4.A.3.b.1 - Inter w Comp** | BII+E score based on O*NET data for "Work Activities: Interacting with Computers".
+**Rank - X** | Six fields which correspond to the rank of the occupation in each skill among all occupations.
+**harm.rank** | The harmonic rank of the occupation across all six skills.
+**harm.rank.digital** | The harmonic rank of the occupation across only four digital skills.
+**tech** | Indicates whether the occupation was included as a tech occupation.
+**digital** | Indicates whether the occupation was considered a digital occupation, a high-tech occupation, or not a tech occupation.
+**tech.no.tel** | Indicates whether the occupation would be considered tech under an alternate ranking system which did not include knowledge of telecommunications.
+**noc_code** | The four-digit NOC code split into a field for convenience.
+**noc_name** | The name of the occupation for the code split into a field for convenience.
+
 ## Occupation List
 
-The full list of scores and rankings can be seen in the *tech.sector.def.csv* file that is included in this repo and output by this file. The list of occupational categories is reproduced below:
+A truncated list of included occupational categories is reproduced below, including an alternative ranking system which excludes telecommunications knowledge which was used for a sensitivity analysis, but not in the report's findings.
 
 ```{r echo = FALSE, message=FALSE}
-kable(individual.ranking)
+kable(
+  individual.ranking %>%
+    filter(tech == 1 | !is.na(digital) | !is.na(tech.no.tel)) %>%
+    mutate(tech.no.tel = ifelse(is.na(tech.no.tel) & !is.na(digital), "Exclude", "Remain")) %>%
+    mutate(tech.no.tel = ifelse(!is.na(tech.no.tel) & is.na(digital), "Add", tech.no.tel)) %>%
+    arrange(digital, desc(tech.no.tel), harm.rank) %>%
+    select("Occupation" = noc_title, "Tech Definition" = digital, "Tech Def w/o Telco" = tech.no.tel)
+  )
+  
 ```
