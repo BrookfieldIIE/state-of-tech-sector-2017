@@ -32,25 +32,27 @@ library(extrafont)
 library(psych)
 library(knitr)
 library(tidyverse)
-library(DT)
+library(readxl)
 ```
 
 Process and Load O\*NET and NOC data
 ------------------------------------
 
-\[Viet - Need source code for this - is it just flat files stored at RDA?\] This code chunk reads in the O\*NET data, combines it into a workable format for our analysis, and joins it with the NOC codes using the crosswalk.
+\[Viet - Need source code for this - is it just flat files stored at RDA?\] This code chunk reads in the O\*NET data from R objects, combines it into a workable format for our analysis, and joins it with the NOC codes using the crosswalk.
 
 ``` r
-# Load data
-load("NOC/crosswalk.RDA") #Import Crosswalk file
-load("NOC/Knowledge.RDA")
-load("NOC/Skills.RDA")
-load("NOC/Work Activities.RDA")
+# Download O*NET data from https://www.onetcenter.org/database.html?p=2. Other formats available
+download.file("https://www.onetcenter.org/dl_files/database/db_23_0_excel/Knowledge.xlsx", "knowledge.xlsx", mode = "wb")
+download.file("https://www.onetcenter.org/dl_files/database/db_23_0_excel/Skills.xlsx", "skills.xlsx", mode = "wb")
+download.file("https://www.onetcenter.org/dl_files/database/db_23_0_excel/Work%20Activities.xlsx", "workactivities.xlsx", mode = "wb")
+
+# Read in O*NET data and BII+E crosswalk
+knowledge <- as.data.table(read_excel("knowledge.xlsx"))
+skill <- as.data.table(read_excel("skills.xlsx"))
+work.activity <- as.data.table(read_excel("workactivities.xlsx"))
+crosswalk <- as.data.table(read_csv("ONET-NOC_Crosswalk.csv"))
 
 # Align O*NET skills, knowledge and work activity data
-knowledge <- as.data.table(knowledge)
-skill <- as.data.table(skill)
-work.activity <- as.data.table(work.activity)
 full.skill <- rbindlist(list(knowledge,skill,work.activity))
 names(full.skill) <- c("onet","title","element.id","element.name","scale.id","scale.name","value","N","stder","lci","uci","sup","nr","date","source")
 full.skill[,c("N","date","source","lci","uci"):=NULL]
@@ -75,11 +77,9 @@ This chunk of code selects the technology skills of interest, computes our ranki
 ``` r
 # Select the technology skills of interest for each NOC
 tech.skills <- c("2.B.3.b", "2.B.3.e", "2.C.3.a", "4.A.3.b.1", "2.C.3.b", "2.C.9.a")
-
-# [Viet - this creates one set of NA matched to full.avg.crosswalk.skill - why?]
 individual.ranking <- full.avg.crosswalk.skill[element.id %in% tech.skills,prod(V1),by=.(noc_title,element.id)]
 individual.ranking <- reshape(individual.ranking,direction="wide",v.names = c("V1"),timevar="element.id",idvar="noc_title")
-individual.ranking <- individual.ranking[!is.na(noc_title)]
+individual.ranking <- individual.ranking[!is.na(noc_title)] #One O*NET occupation was not matched to NOC in the crosswalk and must be removed
 setkey(individual.ranking,noc_title)
 
 # Rank each NOC across each of the selected tech skills
@@ -236,35 +236,35 @@ A truncated list of included occupational categories is reproduced below, includ
 |:----------------------------------------------------------------------------|:----------------|:-------------------|
 | 2174 Computer programmers and interactive media developers                  | Digital         | Remain             |
 | 2173 Software engineers and designers                                       | Digital         | Remain             |
-| 2281 Computer network technicians                                           | Digital         | Remain             |
 | 2147 Computer engineers (except software engineers and designers)           | Digital         | Remain             |
-| 0131 Telecommunication carriers managers                                    | Digital         | Remain             |
 | 2172 Database analysts and data administrators                              | Digital         | Remain             |
-| 2175 Web designers and developers                                           | Digital         | Remain             |
+| 0131 Telecommunication carriers managers                                    | Digital         | Remain             |
+| 2281 Computer network technicians                                           | Digital         | Remain             |
 | 2283 Information systems testing technicians                                | Digital         | Remain             |
+| 2175 Web designers and developers                                           | Digital         | Remain             |
 | 2133 Electrical and electronics engineers                                   | Digital         | Remain             |
 | 2282 User support technicians                                               | Digital         | Remain             |
-| 2171 Information systems analysts and consultants                           | Digital         | Remain             |
 | 0213 Computer and information systems managers                              | Digital         | Remain             |
+| 2171 Information systems analysts and consultants                           | Digital         | Remain             |
+| 2255 Technical occupations in geomatics and meteorology                     | Digital         | Remain             |
 | 2161 Mathematicians, statisticians and actuaries                            | Digital         | Remain             |
 | 7245 Telecommunications line and cable workers                              | Digital         | Exclude            |
 | 5224 Broadcast technicians                                                  | Digital         | Exclude            |
 | 7246 Telecommunications installation and repair workers                     | Digital         | Exclude            |
-| 2146 Aerospace engineers                                                    | High-Tech       | Remain             |
 | 2132 Mechanical engineers                                                   | High-Tech       | Remain             |
+| 2146 Aerospace engineers                                                    | High-Tech       | Remain             |
 | 0211 Engineering managers                                                   | High-Tech       | Remain             |
-| 2143 Mining engineers                                                       | High-Tech       | Remain             |
-| 2144 Geological engineers                                                   | High-Tech       | Remain             |
 | 2134 Chemical engineers                                                     | High-Tech       | Remain             |
 | 2131 Civil engineers                                                        | High-Tech       | Remain             |
 | 2252 Industrial designers                                                   | High-Tech       | Remain             |
-| 2142 Metallurgical and materials engineers                                  | High-Tech       | Remain             |
+| 2143 Mining engineers                                                       | High-Tech       | Remain             |
+| 2144 Geological engineers                                                   | High-Tech       | Remain             |
 | 2241 Electrical and electronics engineering technologists and technicians   | High-Tech       | Remain             |
+| 2142 Metallurgical and materials engineers                                  | High-Tech       | Remain             |
 | 2148 Other professional engineers, n.e.c.                                   | High-Tech       | Remain             |
-| 2255 Technical occupations in geomatics and meteorology                     | High-Tech       | Remain             |
 | 2145 Petroleum engineers                                                    | High-Tech       | Remain             |
 | 2111 Physicists and astronomers                                             | High-Tech       | Remain             |
-| 5225 Audio and video recording technicians                                  | High-Tech       | Exclude            |
+| 2233 Industrial engineering and manufacturing technologists and technicians | High-Tech       | Remain             |
 | 7247 Cable television service and maintenance technicians                   | High-Tech       | Exclude            |
 | 1254 Statistical officers and related research support occupations          | NA              | Add                |
-| 2233 Industrial engineering and manufacturing technologists and technicians | NA              | Add                |
+| 7232 Tool and die makers                                                    | NA              | Add                |
