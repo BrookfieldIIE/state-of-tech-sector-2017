@@ -1,44 +1,40 @@
+
+<img src="biie-logo-web-500width.png" align="center"/>
+
 Defining Canada's Tech Occupations
-================
-Viet Vu and Asher Zafar - Brookfield Institute for Innovation + Entrepreneurship
-October 10, 2018
+==================================
+
+##### *Viet Vu and Asher Zafar*
 
 Purpose
-=======
+-------
 
-This document accompanies the Brookfield Institute for Innovation + Entrepeneurship's (BII+E) 2018 *State of Canada's Tech Workers* report. In line with our open, iterative approach to research, it provides source code in the R programming language, and a walkthrough of our approach to defining tech occupations in Canada so that others can reproduce our work, build upon it, or suggest changes. This document should be used in conjunction with the technical appendix from the report that explains the methodology more completely.
+This document accompanies the Brookfield Institute for Innovation + Entrepeneurship's (BII+E) 2018 [State of Canada's Tech Workers report](https://brookfieldinstitute.ca). In line with our open, iterative approach to research, this documents provides a walkthrough of our approach to defining tech occupations in Canada, including source code in the R programming language, so that others can reproduce our work, build upon it, or suggest changes. This document should be used in conjunction with the technical appendix from the report that explains the methodology more conceptually.
 
 This code and all other items in this repository are available under the [*MIT License*](https://en.wikipedia.org/wiki/MIT_License). In a nutshell, use it freely, but please cite our work. We welcome pull requests and forks. If you'd like to discuss this work, feel free to contact [Viet](https://brookfieldinstitute.ca/team/viet-vu/) or [Asher](https://brookfieldinstitute.ca/team/asher-zafar/) directly.
 
-Inputs and Outputs
-==================
+Inputs
+------
 
 As described in the methodology sections of our report, we use two key data sources to define Canada's tech occupations. The first set of data on occupations is from Employment and Social Development Canada's (ESDC) National Occupational Classification (NOC) and associated linked data from Statistics Canada (StatCan). The second set of data on skills is from the US Occupational Information Network (O\*NET). BII+E developed a crosswalk table to link these data sources, also available in this repository \[Link to Viet's blog on the crosswalk\].
 
-Source Code
-===========
+Definition Source Code
+----------------------
 
-Load required R libraries.
---------------------------
+### Load required R libraries.
 
 ``` r
 library(data.table)
-library(ggplot2)
-library(ggthemes)
 library(stringr)
-library(openxlsx)
-library(BFTheme)
-library(extrafont)
 library(psych)
 library(knitr)
 library(tidyverse)
 library(readxl)
 ```
 
-Process and Load O\*NET and NOC data
-------------------------------------
+### Process and Load O\*NET and NOC data
 
-\[Viet - Need source code for this - is it just flat files stored at RDA?\] This code chunk reads in the O\*NET data from R objects, combines it into a workable format for our analysis, and joins it with the NOC codes using the crosswalk.
+This code chunk reads in the O\*NET data from R objects, combines it into a workable format for our analysis, and joins it with the NOC codes using the crosswalk.
 
 ``` r
 # Download O*NET data from https://www.onetcenter.org/database.html?p=2. Other formats available
@@ -69,8 +65,7 @@ rm(full.skill)
 rm(work.activity,skill,knowledge)
 ```
 
-Generate Rankings for NOCs based on O\*NET Skills
--------------------------------------------------
+### Generate Rankings for NOCs based on O\*NET Skills
 
 This chunk of code selects the technology skills of interest, computes our ranking of technology and digital occupations, and produces our final list of digital and high-tech occupations, as outlined in methodology for the report.
 
@@ -143,12 +138,10 @@ individual.ranking$noc_name <- substr(individual.ranking$noc_title, 5, nchar(ind
 write.csv(individual.ranking,"tech.sector.def.csv",row.names=FALSE)
 
 #Clean up the environment
-rm(crosswalk, full.avg.crosswalk.skill)
-rm(digital.cut.off, n, tech.cut.off, tech.skills)
+rm(crosswalk, digital.cut.off, n, tech.cut.off, tech.skills)
 ```
 
-Field List
-----------
+### Field List
 
 The full list of scores and rankings can be seen in the *tech.sector.def.csv* file that is included in this repo and output by the corresponding R Markdown file. The data fields in this file are described as follows:
 
@@ -227,8 +220,7 @@ The full list of scores and rankings can be seen in the *tech.sector.def.csv* fi
 </tbody>
 </table>
 
-Occupation List
----------------
+### Occupation List
 
 A truncated list of included occupational categories is reproduced below, including an alternative ranking system which excludes telecommunications knowledge which was used for a sensitivity analysis, but not in the report's findings.
 
@@ -268,3 +260,62 @@ A truncated list of included occupational categories is reproduced below, includ
 | 7247 Cable television service and maintenance technicians                   | High-Tech       | Exclude            |
 | 1254 Statistical officers and related research support occupations          | NA              | Add                |
 | 7232 Tool and die makers                                                    | NA              | Add                |
+
+PCA-based Validation
+--------------------
+
+To empirically assess our method, we sought to understand how O\*NET skills covary across occupations without subjectively selecting the skills ourselves. We conducted the following analysis based on principal component analysis (PCA) to see which skills tended to covary. Our report contains more conceptual information on PCA and our approach. This script also generates two open data files which are located in this repository and available for use:
+
+-   **"PCA\_skill\_loads.csv"** contains the PCA loadings for each skill and the first five PCs (this can be increased if desired). This file was the basis for our validation analysis.
+-   **"PCA\_occ\_scores.csv"** contains the composite scores for each PC and occupation. We did not use this file in our analysis, but thought it could be of use to others.
+
+``` r
+#Load and process skill and occupation data
+onet.s <- full.avg.crosswalk.skill
+onet.s$element<- paste(substr(onet.s$element.id, 1, 5), onet.s$element.name)
+
+onet.s <- onet.s %>%
+  select(noc_title, element, scale.name, V1) %>%
+  filter(!is.na(noc_title)) %>%
+  spread(scale.name, V1) %>%
+  mutate(score = Importance * Level) %>% # Multiplied importance by level  of skill per O*NET recommendations
+  select(noc_title, element, score) %>%
+  spread(element, score) %>%
+  remove_rownames %>% 
+  column_to_rownames(var="noc_title")
+
+
+#Create principal components
+onet.s.pca <- prcomp(onet.s, center=TRUE, scale.=TRUE, rank. = 5) # The last argument retains the first 5 PCs. This can be changed if you desire.
+
+#Analyze principal component skill loadings
+onet.loading <- as.data.frame(onet.s.pca$rotation) %>% rownames_to_column(var = "Skill") %>% arrange(desc(PC3))
+write.csv(as.data.frame(onet.s.pca$rotation) %>% arrange(PC3), "PCA_skill_loads.csv")
+
+#Analyze occupational scores
+onet.pca <- as.data.frame(predict(onet.s.pca, newdata = onet.s))
+write.csv(onet.s.pca$rotation, "PCA_occ_scores.csv")
+```
+
+From our PC loadings, we found that PC3's heavily weighted skills aligned very closely to our selected skills, and it accounted for a significant amount of variance in the O\*NET data. The following skills were most heavily weighted on one end of PC3 (the other end heavily weighted skills such as caring for others and coaching):
+
+    ## Importance of first k=5 (out of 109) components:
+    ##                           PC1    PC2    PC3     PC4     PC5
+    ## Standard deviation     6.4489 3.9767 2.7742 2.45908 1.83926
+    ## Proportion of Variance 0.3816 0.1451 0.0706 0.05548 0.03104
+    ## Cumulative Proportion  0.3816 0.5266 0.5972 0.65272 0.68375
+
+| Skill                               |    PC1|    PC2|   PC3|    PC4|    PC5|
+|:------------------------------------|------:|------:|-----:|------:|------:|
+| 2.B.3 Programming                   |  -0.05|   0.03|  0.23|   0.00|   0.03|
+| 4.A.3 Interacting With Computers    |  -0.11|  -0.01|  0.20|   0.00|  -0.01|
+| 2.C.3 Computers and Electronics     |  -0.09|   0.03|  0.20|   0.00|   0.10|
+| 4.A.2 Processing Information        |  -0.11|   0.03|  0.17|  -0.08|  -0.16|
+| 2.C.4 Mathematics                   |  -0.07|   0.11|  0.17|   0.05|  -0.08|
+| 2.A.1 Mathematics                   |  -0.09|   0.09|  0.17|   0.04|  -0.13|
+| 2.B.3 Technology Design             |  -0.05|   0.12|  0.17|   0.01|   0.14|
+| 4.A.2 Analyzing Data or Information |  -0.12|   0.04|  0.16|  -0.06|  -0.11|
+| 2.C.3 Engineering and Technology    |  -0.03|   0.19|  0.14|   0.06|   0.09|
+| 2.A.1 Science                       |  -0.07|   0.09|  0.13|  -0.19|  -0.05|
+
+Our selected skills are all present here except for telecommunications, which we discuss thoroughly in our report's appendix. Our selected skills are also interspersed with scientific and mathmatical skills, which is no surprise given the commonalities among "STEM" fields (science, technology, engineering and math). Given our focus on tech, we chose to focus on the "T" and "E"" in STEM in our definition rather than the "S" and the "M".
