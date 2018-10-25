@@ -1,22 +1,28 @@
+Defining Canadian Tech Occupations <img src="biie-logo-web-500width.png" align="center"/>
+================
+<i><b>Viet Vu and Asher Zafar</b></i>
 
-<img src="biie-logo-web-500width.png" align="center"/>
-
-Defining Canada's Tech Occupations
-==================================
-
-##### *Viet Vu and Asher Zafar*
+-   [Purpose](#purpose)
+-   [Inputs](#inputs)
+-   [Definition Source Code](#definition-source-code)
+    -   [Load required R libraries.](#load-required-r-libraries.)
+    -   [Process and Load O\*NET and NOC data](#process-and-load-onet-and-noc-data)
+    -   [Generate Rankings for NOCs based on O\*NET Skills](#generate-rankings-for-nocs-based-on-onet-skills)
+-   [Definition File Field List](#definition-file-field-list)
+-   [Definition Occupation List](#definition-occupation-list)
+-   [PCA-based Validation](#pca-based-validation)
 
 Purpose
 -------
 
-This document accompanies the Brookfield Institute for Innovation + Entrepeneurship's (BII+E) 2018 [State of Canada's Tech Workers report](https://brookfieldinstitute.ca). In line with our open, iterative approach to research, this documents provides a walkthrough of our approach to defining tech occupations in Canada, including source code in the R programming language, so that others can reproduce our work, build upon it, or suggest changes. This document should be used in conjunction with the technical appendix from the report that explains the methodology more conceptually.
+This document accompanies the Brookfield Institute for Innovation + Entrepeneurship's (BII+E) 2018 [State of Canada's Tech Workers report](https://brookfieldinstitute.ca). In line with our open, iterative approach to research, this document provides a walkthrough of our approach to defining tech occupations in Canada, including source code in the R programming language (see the .Rmd file in this repository), so that others can reproduce our work, build upon it, or suggest changes. This document should be used in conjunction with the technical appendix from the report that explains the methodology more conceptually.
 
 This code and all other items in this repository are available under the [*MIT License*](https://en.wikipedia.org/wiki/MIT_License). In a nutshell, use it freely, but please cite our work. We welcome pull requests and forks. If you'd like to discuss this work, feel free to contact [Viet](https://brookfieldinstitute.ca/team/viet-vu/) or [Asher](https://brookfieldinstitute.ca/team/asher-zafar/) directly.
 
 Inputs
 ------
 
-As described in the methodology sections of our report, we use two key data sources to define Canada's tech occupations. The first set of data on occupations is from Employment and Social Development Canada's (ESDC) National Occupational Classification (NOC) and associated linked data from Statistics Canada (StatCan). The second set of data on skills is from the US Occupational Information Network (O\*NET). BII+E developed a crosswalk table to link these data sources, also available in this repository \[Link to Viet's blog on the crosswalk\].
+As described in the methodology sections of our report, we use two key data sources to define Canada's tech occupations. The first set of data on occupations is from Employment and Social Development Canada's (ESDC) National Occupational Classification (NOC) and associated linked data from Statistics Canada (StatCan). The second set of data on skills is from the US Occupational Information Network (O\*NET). BII+E developed a crosswalk table to link these data sources, also available in this repository.
 
 Definition Source Code
 ----------------------
@@ -141,7 +147,8 @@ write.csv(individual.ranking,"tech.sector.def.csv",row.names=FALSE)
 rm(crosswalk, digital.cut.off, n, tech.cut.off, tech.skills)
 ```
 
-### Field List
+Definition File Field List
+--------------------------
 
 The full list of scores and rankings can be seen in the *tech.sector.def.csv* file that is included in this repo and output by the corresponding R Markdown file. The data fields in this file are described as follows:
 
@@ -220,7 +227,8 @@ The full list of scores and rankings can be seen in the *tech.sector.def.csv* fi
 </tbody>
 </table>
 
-### Occupation List
+Definition Occupation List
+--------------------------
 
 A truncated list of included occupational categories is reproduced below, including an alternative ranking system which excludes telecommunications knowledge which was used for a sensitivity analysis, but not in the report's findings.
 
