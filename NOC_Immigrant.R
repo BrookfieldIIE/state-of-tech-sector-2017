@@ -20,7 +20,7 @@ names(noc.2016.imm) <- c("IM.STATUS","IM.STATUS.ID") #Change names
 
 noc.2016.imm <- noc.2016.imm[IM.STATUS %in% c("Non-immigrants","Immigrants")] #Only keep the columns for Immigrant vs non immigrants
 
-noc.2016.imm.for.graph <- noc.2016.imm[SEX3 != "Total - Sex" & AGE5 == "25 to 54 years"] #only keep the total sex and prime age workers for now
+noc.2016.imm.for.graph <- noc.2016.imm[SEX3 != "Total - Sex" & AGE5 == "Total - Age"] #only keep the total sex and prime age workers for now
 noc.2016.imm.for.graph[,demo:=str_c(AGE5," ", IM.STATUS," ",SEX3)] #Combine Age and Sex to label the graph
 noc.2016.imm.for.graph[,category:='Tech Occupation "Premium"'] #Set the label
 noc.2016.imm.for.graph[tech==0,category:='Average Non-Tech Salary'] #Set the label for graph

@@ -36,17 +36,17 @@ noc.dem.cell[,Share:=100*min(V1)/sum(V1),by=.(AGE.NEW,SEX)]
 noc.dem.cell[,dot:=V1/1000]
 
 
-first.set <- generate.dot(121,nrow=10,starting.coord=c(2,0),dual.colour.break = 1,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
-second.set <- generate.dot(184,nrow=10,starting.coord=c(2,12),dual.colour.break = 4,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
-third.set <- generate.dot(187,nrow=10,starting.coord=c(2,24),dual.colour.break = 4,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
-fourth.set <- generate.dot(205,nrow=10,starting.coord=c(2,36),dual.colour.break = 3,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
-fifth.set <- generate.dot(144,nrow=10,starting.coord=c(2,48),dual.colour.break = 1,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
+first.set <- generate.dot(121,nrow=10,starting.coord=c(2,0),dual.colour.break = 1,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
+second.set <- generate.dot(184,nrow=10,starting.coord=c(2,12),dual.colour.break = 4,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
+third.set <- generate.dot(187,nrow=10,starting.coord=c(2,24),dual.colour.break = 4,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
+fourth.set <- generate.dot(205,nrow=10,starting.coord=c(2,36),dual.colour.break = 3,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
+fifth.set <- generate.dot(144,nrow=10,starting.coord=c(2,48),dual.colour.break = 1,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
 
-sixth.set <- generate.dot(125,nrow=10,direction = "left",starting.coord=c(-2,0), dual.colour.break = 3,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
-seventh.set <- generate.dot(199,nrow=10,direction = "left",starting.coord=c(-2,12), dual.colour.break = 15,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
-eigth.set <- generate.dot(198,nrow=10,direction = "left",starting.coord=c(-2,24), dual.colour.break = 15,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
-ninth.set <- generate.dot(214,nrow=10,direction = "left",starting.coord=c(-2,36), dual.colour.break = 13,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
-tenth.set <- generate.dot(167,nrow=10,direction = "left",starting.coord=c(-2,48), dual.colour.break = 7,colour.title = c("In Tech Occupation","Not in Tech Occupation"))
+sixth.set <- generate.dot(125,nrow=10,direction = "left",starting.coord=c(-2,0), dual.colour.break = 3,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
+seventh.set <- generate.dot(199,nrow=10,direction = "left",starting.coord=c(-2,12), dual.colour.break = 15,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
+eigth.set <- generate.dot(198,nrow=10,direction = "left",starting.coord=c(-2,24), dual.colour.break = 15,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
+ninth.set <- generate.dot(214,nrow=10,direction = "left",starting.coord=c(-2,36), dual.colour.break = 13,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
+tenth.set <- generate.dot(167,nrow=10,direction = "left",starting.coord=c(-2,48), dual.colour.break = 7,colour.title = c("In Tech Occupations","In Non-Tech Occupations"))
 
 test.plot <- ggplot() +
   brookfield.base.theme() +
@@ -60,7 +60,7 @@ test.plot <- ggplot() +
   geom_point(data=eigth.set,aes(x,y,colour = colour)) +
   geom_point(data=ninth.set,aes(x,y,colour = colour)) +
   geom_point(data=tenth.set,aes(x,y,colour = colour)) +
-  scale_colour_manual(values = set.colours(2,categorical.choice = c("pink","dark.blue"))) +
+  scale_colour_manual(values = set.colours(2,categorical.choice = c("dark.blue","pink"))) +
   annotate("text", x = 0, y = 5, label = "15-24",size = 3, family = "RooneySans-Regular") +
   annotate("text", x = 0, y = 17, label = "25-34",size = 3, family = "RooneySans-Regular") +
   annotate("text", x = 0, y = 29, label = "35-44",size = 3, family = "RooneySans-Regular") +

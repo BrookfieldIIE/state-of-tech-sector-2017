@@ -23,7 +23,9 @@ load("NOC/Knowledge.RDA")
 load("NOC/Skills.RDA")
 load("NOC/Work Activities.RDA")
 load("NOC/Work Styles.RDA")
+load("NOC_Demographics/noc_2016_processed.RDA")
 
+noc.dem.sumstat <- noc.dem[LF.STATUS.ID == 1 & AGE.ID == 1 & SEX.ID == 1 & GEO.NAME == "Canada"]
 #Combine skill knowledge and work activity in one thing
 knowledge <- as.data.table(knowledge)
 skill <- as.data.table(skill)
@@ -150,7 +152,7 @@ sensitivity.around.ranking <- data.table(rank=0,num=0)
 for(n in seq(1,100)){
   individual.ranking[harm.rank < n, tech:=1]
   noc.dem.sumstat[,tech:=0]
-  noc.dem.sumstat[NOC691 %in% individual.ranking[tech==1,noc_title],tech:=1]
+  noc.dem.sumstat[NOC %in% individual.ranking[tech==1,noc_title],tech:=1]
   sensitivity.around.ranking <- rbindlist(list(sensitivity.around.ranking,data.table(rank=n,num=sum(noc.dem.sumstat[tech==1,TOT]))))
 }
 

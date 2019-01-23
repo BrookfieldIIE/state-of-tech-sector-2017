@@ -5,7 +5,6 @@ library(tidyverse)
 library(BFTheme)
 library(skimr)
 library(data.table)
-setwd("~/GitHub/state-of-tech-sector-2017")
 
 source("NOC.R")
 tech.occ.def <- read_csv("tech.sector.def.csv")
@@ -15,10 +14,9 @@ tech.occ.def <- tech.occ.def %>%
   filter(!is.na(digital)) %>%
   mutate(noc_code = substr(noc_title, 1,4))
 
-setwd("~/GitHub/state-of-tech-sector-2017/NOC/COPS")
 
-cops <- read_csv("employment_emploi_2017_2026.csv")
-noc.to.cops <- read_csv("NOC_occ_grouping_eng_2017-2026.csv")
+cops <- read_csv("NOC/COPS/employment_emploi_2017_2026.csv")
+noc.to.cops <- read_csv("NOC/COPS/NOC_occ_grouping_eng_2017-2026.csv")
 
 cops <- cops %>%
   select(-Occupation_Name, -Nom_de_la_profession) %>%

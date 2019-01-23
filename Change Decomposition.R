@@ -60,11 +60,12 @@ noc.2016.age[,pct.tech.2016:=tech.total.2016/pop.total.2016] #Get percentage of 
 noc.2016.age[,tech:=NULL]
 noc.2016.age[,AGE.ID:=NULL]
 
-
+noc.2006.age[,SEX:=as.character(SEX)]
 setkey(noc.2006.age,AGE,SEX)
 setkey(noc.2016.age,AGE,SEX)
 
 #Actual decomposition stuff
+
 noc.dec.merge <- noc.2006.age[noc.2016.age]
 
 propensity.effect <- noc.dec.merge[,sum((pct.tech.2016-pct.tech.2006)*pct.pop.2006)] #Propensity effect

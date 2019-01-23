@@ -10,15 +10,17 @@ load("NOC_Demographics/noc_abo_processed.RDA") #Load the data for Aboriginal
 
 load("NOC_Demographics/noc_2016_vis_processed.RDA")
 
-noc.vis.2016.by.tech <- noc.vis.2016[,.(sum(TOT),wt.mean(AVG.INC,TOT)),by=.(VIS15,VIS15.ID,EDUC7,EDUC7.ID,WA4,WA4.ID,AGE4,AGE4.ID,SEX3,SEX3.ID,tech)]
+noc.vis.2016.by.tech <- noc.vis.2016[,
+                                     .(sum(TOT),wt.mean(AVG.INC,TOT)),
+                                     by=.(VIS15,VIS15.ID,EDUC7,EDUC7.ID,WA4,WA4.ID,AGE4,AGE4.ID,SEX3,SEX3.ID,tech)]
 
-noc.vis.2016.by.tech <- noc.vis.2016.by.tech[AGE4=="25 to 64 years"]
+noc.vis.2016.by.tech <- noc.vis.2016.by.tech[AGE.ID==1]
 
 
-noc.vis.2016.by.tech.sumstat <- noc.vis.2016.by.tech[EDUC7.ID==1 & WA4.ID==1 & AGE4.ID==3 & SEX3.ID==1]
+noc.vis.2016.by.tech.sumstat <- noc.vis.2016.by.tech[EDUC7.ID==1 & WA4.ID==1 & AGE4.ID==1 & SEX3.ID==1]
 noc.vis.2016.by.tech.sumstat[,pct:=100*min(V1)/sum(V1),by=VIS15]
 
-noc.vis.2016.by.tech.gen <- noc.vis.2016.by.tech[EDUC7.ID==1 & WA4.ID == 1 & AGE4.ID == 3 & SEX3.ID %in% c(2,3)]
+noc.vis.2016.by.tech.gen <- noc.vis.2016.by.tech[EDUC7.ID==1 & WA4.ID == 1 & AGE4.ID == 1 & SEX3.ID %in% c(2,3)]
 
 noc.vis.2016.by.tech.gen.sum <- noc.vis.2016.by.tech.gen
 noc.vis.2016.by.tech.gen.sum[,pct:=100*V1/sum(V1),by=.(SEX3,SEX3.ID,VIS15,VIS15.ID)]

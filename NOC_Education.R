@@ -67,7 +67,7 @@ setkey(noc.cip.change,CIP,Year) #Order the table to prepare to plot change arrow
 
 
 ####################################
-#Pay by educational level in Technology
+#Pay by educational level in Technology - include Regression stuff
 noc.educ.pay.tech <- noc.dem.master[GEO.NAME == "Canada" & IM.STATUS.ID == 1 & WA.ID == 1 & AGE5.ID == 1 & SEX3.ID == 1,.(sum(TOT),wt.mean(AVG.INC,TOT)),by=.(tech,EDUC,EDUC.ID)]
 noc.educ.pay.tech.decomp <- noc.dem.master[GEO.NAME == "Canada" & IM.STATUS.ID == 1 & WA.ID == 1 & AGE5.ID == 1,.(sum(TOT),wt.mean(AVG.INC,TOT)),by=.(tech,EDUC,EDUC.ID,SEX3,SEX3.ID)]
 noc.educ.pay.tech.decomp <- noc.educ.pay.tech.decomp[EDUC != "Total - Highest certificate, diploma or degree" & SEX3 != "Total - Sex"]
@@ -118,10 +118,8 @@ gephi.cip.noc.nodes <- rbindlist(list(gephi.cip.nodes,gephi.noc.nodes))
 write.csv(gephi.cip.noc.nodes,file="Gephi/nodes_noc_cip.csv",row.names = FALSE)
 
 
-###################################
-#Regressional decomposition
 
-
+############
 
 pay.premium.by.educ <- plot.change.arrow.bf(noc.educ.pay.tech[EDUC.ID != 1],"V2",
                                             cat="EDUC",
